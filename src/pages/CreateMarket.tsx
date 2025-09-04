@@ -8,12 +8,12 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 
 const CreateMarket = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useFirebaseAuth();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     market_name: '',
@@ -39,7 +39,7 @@ const CreateMarket = () => {
       const marketData = {
         market_name: formData.market_name,
         description: formData.description || null,
-        creator_id: user.id,
+        creator_id: user.uid,
         latitude: formData.latitude ? parseFloat(formData.latitude) : null,
         longitude: formData.longitude ? parseFloat(formData.longitude) : null,
         required_documents: formData.required_documents || null,

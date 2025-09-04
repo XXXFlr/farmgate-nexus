@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { ArrowLeft, MessageCircle, Send, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 
 interface Chat {
   id: string;
@@ -25,7 +25,7 @@ interface Message {
 
 const Chat = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useFirebaseAuth();
   const [chats, setChats] = useState<Chat[]>([]);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -51,7 +51,7 @@ const Chat = () => {
       const { data, error } = await supabase
         .from('chats')
         .select('*')
-        .or(`user_id_1.eq.${user.id},user_id_2.eq.${user.id}`)
+        .or(`user_id_1.eq.${user.uid},user_id_2.eq.${user.uid}`)
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
@@ -86,7 +86,7 @@ const Chat = () => {
         .from('messages')
         .insert([{
           chat_id: selectedChat,
-          sender_id: user.id,
+          sender_id: user.uid,
           message: newMessage.trim(),
         }]);
 
@@ -191,12 +191,12 @@ const Chat = () => {
                         <div
                           key={message.id}
                           className={`flex ${
-                            message.sender_id === user?.id ? 'justify-end' : 'justify-start'
+                            message.sender_id === user?.uid ? 'justify-end' : 'justify-start'
                           }`}
                         >
                           <div
                             className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                              message.sender_id === user?.id
+                              message.sender_id === user?.uid
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-muted text-muted-foreground'
                             }`}
