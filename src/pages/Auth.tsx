@@ -104,7 +104,14 @@ const Auth = () => {
               {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
             </Button>
           </form>
-          <div className="mt-4 text-center">
+          <div className="mt-4 space-y-2 text-center">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/')}
+              className="w-full"
+            >
+              Continue as Guest
+            </Button>
             <Button
               variant="link"
               onClick={() => setIsLogin(!isLogin)}
