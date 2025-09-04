@@ -3,33 +3,72 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Calendar, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/config/firebase';
+import GoogleMapComponent from '@/components/GoogleMap';
 
 interface Market {
-  market_id: string;
-  market_name: string;
+  id: string;
+  name: string;
   description: string;
   latitude: number;
   longitude: number;
   created_at: string;
 }
 
+interface MapPin {
+  id: string;
+  position: {
+    lat: number;
+    lng: number;
+  };
+  title: string;
+  description?: string;
+}
+
 const Map = () => {
   const navigate = useNavigate();
   const [markets, setMarkets] = useState<Market[]>([]);
+  const [pins, setPins] = useState<MapPin[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMarkets = async () => {
       try {
-        const { data, error } = await supabase
-          .from('markets')
-          .select('*')
-          .not('latitude', 'is', null)
-          .not('longitude', 'is', null);
-
-        if (error) throw error;
-        setMarkets(data || []);
+        const marketsRef = collection(db, 'markets');
+        const querySnapshot = await getDocs(marketsRef);
+        
+        const fetchedMarkets: Market[] = [];
+        const fetchedPins: MapPin[] = [];
+        
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          if (data.latitude && data.longitude) {
+            const market: Market = {
+              id: doc.id,
+              name: data.name || 'Unnamed Market',
+              description: data.description || '',
+              latitude: data.latitude,
+              longitude: data.longitude,
+              created_at: data.created_at || new Date().toISOString(),
+            };
+            
+            fetchedMarkets.push(market);
+            
+            fetchedPins.push({
+              id: doc.id,
+              position: {
+                lat: data.latitude,
+                lng: data.longitude,
+              },
+              title: data.name || 'Unnamed Market',
+              description: data.description || '',
+            });
+          }
+        });
+        
+        setMarkets(fetchedMarkets);
+        setPins(fetchedPins);
       } catch (error) {
         console.error('Error fetching markets:', error);
       } finally {
@@ -39,6 +78,11 @@ const Map = () => {
 
     fetchMarkets();
   }, []);
+
+  const handleMapClick = (position: { lat: number; lng: number }) => {
+    // Optional: Handle map clicks to add new pins
+    console.log('Map clicked at:', position);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -53,20 +97,20 @@ const Map = () => {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Map Placeholder */}
+        {/* Interactive Google Map */}
         <Card className="mb-8">
-          <CardContent className="p-0">
-            <div className="h-96 bg-muted flex items-center justify-center rounded-lg">
-              <div className="text-center">
-                <MapPin className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                <p className="text-lg text-muted-foreground">
-                  Interactive map coming soon
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  View markets with location data below
-                </p>
-              </div>
-            </div>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5" />
+              Market Locations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <GoogleMapComponent 
+              pins={pins}
+              onMapClick={handleMapClick}
+              center={pins.length > 0 ? pins[0].position : undefined}
+            />
           </CardContent>
         </Card>
 
@@ -100,11 +144,11 @@ const Map = () => {
           ) : (
             <div className="grid gap-4">
               {markets.map((market) => (
-                <Card key={market.market_id} className="hover:shadow-lg transition-shadow">
+                <Card key={market.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
-                        <CardTitle className="text-lg">{market.market_name}</CardTitle>
+                        <CardTitle className="text-lg">{market.name}</CardTitle>
                         <p className="text-sm text-muted-foreground mt-1">
                           {market.description}
                         </p>
@@ -112,7 +156,7 @@ const Map = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => navigate(`/markets/${market.market_id}`)}
+                        onClick={() => navigate(`/markets/${market.id}`)}
                       >
                         View Details
                       </Button>

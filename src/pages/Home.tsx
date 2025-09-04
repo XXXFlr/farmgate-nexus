@@ -2,11 +2,11 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MapPin, Users, MessageCircle, Plus } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 
 const Home = () => {
   const navigate = useNavigate();
-  const { user, signOut } = useAuth();
+  const { user, signOut } = useFirebaseAuth();
 
   return (
     <div className="min-h-screen bg-background">

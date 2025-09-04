@@ -1,13 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,7 +14,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, signInWithEmail, signUpWithEmail, signInWithGoogle } = useFirebaseAuth();
 
   useEffect(() => {
     if (user) {
@@ -30,35 +28,39 @@ const Auth = () => {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        
-        if (error) throw error;
-        
+        await signInWithEmail(email, password);
         toast({
           title: "Welcome back!",
           description: "You have been logged in successfully.",
         });
       } else {
-        const redirectUrl = `${window.location.origin}/`;
-        
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: redirectUrl
-          }
-        });
-        
-        if (error) throw error;
-        
+        await signUpWithEmail(email, password);
         toast({
           title: "Account created!",
-          description: "Please check your email to verify your account.",
+          description: "You have been successfully registered.",
         });
       }
+      navigate('/');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setLoading(true);
+    try {
+      await signInWithGoogle();
+      toast({
+        title: "Welcome!",
+        description: "You have been logged in with Google.",
+      });
+      navigate('/');
     } catch (error: any) {
       toast({
         title: "Error",
@@ -105,6 +107,14 @@ const Auth = () => {
             </Button>
           </form>
           <div className="mt-4 space-y-2 text-center">
+            <Button
+              variant="outline"
+              onClick={handleGoogleAuth}
+              className="w-full"
+              disabled={loading}
+            >
+              Continue with Google
+            </Button>
             <Button
               variant="outline"
               onClick={() => navigate('/')}

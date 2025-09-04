@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { FirebaseAuthProvider, useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
 import Map from "./pages/Map";
@@ -15,7 +15,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { loading } = useAuth();
+  const { loading } = useFirebaseAuth();
   
   if (loading) {
     return (
@@ -30,7 +30,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
+    <FirebaseAuthProvider>
       <TooltipProvider>
         <Toaster />
         <Sonner />
@@ -82,7 +82,7 @@ const App = () => (
           </Routes>
         </BrowserRouter>
       </TooltipProvider>
-    </AuthProvider>
+    </FirebaseAuthProvider>
   </QueryClientProvider>
 );
 
