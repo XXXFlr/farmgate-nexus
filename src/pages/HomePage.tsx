@@ -28,6 +28,20 @@ interface FarmUser {
   photo_url: string | null;
 }
 
+interface Product {
+  product_id: string;
+  product_name: string;
+  description: string | null;
+  price: number | null;
+  photo_url: string | null;
+  user_id: string;
+  stock: string | null;
+  unit: string | null;
+  location: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
 const HomePage = () => {
   const navigate = useNavigate();
   const { user } = useFirebaseAuth();
@@ -35,13 +49,16 @@ const HomePage = () => {
   const [markets, setMarkets] = useState<Market[]>([]);
   const [filteredMarkets, setFilteredMarkets] = useState<Market[]>([]);
   const [farmUsers, setFarmUsers] = useState<FarmUser[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [farmsLoading, setFarmsLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
 
   useEffect(() => {
     fetchMarkets();
     fetchFarmUsers();
+    fetchProducts();
   }, []);
 
   useEffect(() => {
@@ -115,6 +132,24 @@ const HomePage = () => {
       console.error('Error fetching farm users:', error);
     } finally {
       setFarmsLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setProductsLoading(false);
     }
   };
 
@@ -401,6 +436,97 @@ const HomePage = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* Products Section */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-2xl font-bold text-foreground">Fresh Products</h3>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/products')}
+              className="text-muted-foreground"
+            >
+              View All
+            </Button>
+          </div>
+          
+          {productsLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : products.length > 0 ? (
+            <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-hide">
+              {products.map((product) => (
+                <Card 
+                  key={product.product_id}
+                  className="cursor-pointer hover:shadow-md transition-shadow border-border"
+                  onClick={() => navigate(`/product/${product.product_id}`)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0">
+                        <img
+                          src={product.photo_url || 'https://images.unsplash.com/photo-1590736969955-71cc94901144?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80'}
+                          alt={product.product_name}
+                          className="w-20 h-20 object-cover rounded-lg bg-muted"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1590736969955-71cc94901144?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80';
+                          }}
+                        />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-foreground truncate">
+                              {product.product_name}
+                            </h4>
+                            {product.description && (
+                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                {product.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-2 mt-2">
+                              {product.location && (
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                  <MapPin className="h-3 w-3" />
+                                  <span>{product.location}</span>
+                                </div>
+                              )}
+                              {product.stock && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {product.stock} {product.unit || 'units'}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="text-right flex-shrink-0 ml-4">
+                            {product.price && (
+                              <div className="font-bold text-primary">
+                                ${product.price.toFixed(2)}
+                                {product.unit && (
+                                  <span className="text-sm text-muted-foreground">
+                                    /{product.unit}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No products available at the moment.</p>
             </div>
           )}
         </div>
