@@ -39,13 +39,13 @@ export function BottomNavigation() {
               variant="ghost"
               size="sm"
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center gap-1 h-auto py-2 px-3 hover:bg-transparent ${
+              className={`flex flex-col items-center gap-1 h-auto py-2 px-3 hover:bg-transparent transition-colors ${
                 active 
                   ? 'text-orange-400' 
                   : 'text-white hover:text-orange-200'
               }`}
             >
-              <item.icon className="h-7 w-7" />
+              <item.icon className="h-6 w-6" />
               <span className="text-xs font-medium">{item.label}</span>
             </Button>
           );

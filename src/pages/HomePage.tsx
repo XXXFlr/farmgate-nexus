@@ -76,15 +76,18 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-primary text-white px-4 py-3 flex items-center gap-3 md:hidden">
-        <Button variant="ghost" size="sm" onClick={toggleSidebar}>
-          <Menu className="h-5 w-5" />
-        </Button>
+      {/* Header - Always visible on mobile */}
+      <header className="bg-primary text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-50 md:hidden">
+        <button 
+          onClick={toggleSidebar}
+          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+        >
+          <Menu className="h-6 w-6" />
+        </button>
         <h1 className="text-xl font-semibold">Home</h1>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 flex-1">
         {/* Action Buttons */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
