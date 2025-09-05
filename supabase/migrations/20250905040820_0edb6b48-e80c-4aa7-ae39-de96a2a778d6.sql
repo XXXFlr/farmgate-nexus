@@ -1,0 +1,13 @@
+-- Enable RLS on all tables that don't have it
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.product_categories ENABLE ROW LEVEL SECURITY; 
+ALTER TABLE public.user_categories ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.product_category_assignments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.market_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.product_photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.market_vendors ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.documents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chats ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
