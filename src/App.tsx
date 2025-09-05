@@ -36,20 +36,22 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRouter = () => {
   return (
-    <Routes>
-      <Route path="/auth" element={<Auth />} />
-      <Route path="/" element={<HomePage />} />
-      <Route path="/market/:marketId" element={<MarketDetails />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/account" element={<Account />} />
-      <Route path="/add-event" element={<AddEvent />} />
-      <Route path="/edit-event/:marketId" element={<EditEvent />} />
-      <Route path="/map" element={<Map />} />
-      <Route path="/markets" element={<Markets />} />
-      <Route path="/markets/create" element={<CreateMarket />} />
-      <Route path="/chat" element={<Chat />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <AppLayout>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/market/:marketId" element={<MarketDetails />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/account" element={<Account />} />
+        <Route path="/add-event" element={<AddEvent />} />
+        <Route path="/edit-event/:marketId" element={<EditEvent />} />
+        <Route path="/map" element={<Map />} />
+        <Route path="/markets" element={<Markets />} />
+        <Route path="/markets/create" element={<CreateMarket />} />
+        <Route path="/chat" element={<Chat />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AppLayout>
   );
 };
 

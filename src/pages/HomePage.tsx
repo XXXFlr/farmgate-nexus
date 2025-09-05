@@ -8,7 +8,6 @@ import { Calendar, Clock, MapPin, Plus, Search, Map } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { format } from 'date-fns';
-import { AppLayout } from '@/components/AppLayout';
 
 interface Market {
   market_id: string;
@@ -74,8 +73,7 @@ const HomePage = () => {
   };
 
   return (
-    <AppLayout title="Home">
-      <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6">
         {/* Action Buttons */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -172,7 +170,6 @@ const HomePage = () => {
           </div>
         )}
       </div>
-    </AppLayout>
   );
 };
 
