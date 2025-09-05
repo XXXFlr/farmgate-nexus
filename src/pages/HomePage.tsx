@@ -159,15 +159,18 @@ const HomePage = () => {
         >
           <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/40" />
           <div className="relative flex items-center justify-between h-full px-4 pt-10">
-            {/* Profile Avatar */}
+            {/* Profile Avatar with Flutter styling */}
             <button 
               onClick={toggleSidebar}
-              className="w-12 h-12 rounded-full border-2 border-accent/50 bg-accent/30 overflow-hidden flex-shrink-0"
+              className="w-12 h-12 rounded-full border-2 border-accent flex-shrink-0 p-0.5 transition-all duration-200 hover:scale-105"
+              style={{
+                backgroundColor: 'rgba(57, 210, 192, 0.3)', // Color(0x4C39D2C0) converted to rgba
+              }}
             >
               <img
                 src={user?.photoURL || 'https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots//man.png'}
                 alt="Profile"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-full"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots//man.png';
                 }}
