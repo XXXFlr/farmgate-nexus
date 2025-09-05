@@ -250,15 +250,13 @@ const HomePage = () => {
       <div className="px-4 py-4 pb-20 md:pb-4 relative z-10 max-w-7xl mx-auto">
 
         {/* Category Tabs */}
-        <div className="flex items-center overflow-x-auto mb-4 scrollbar-hide mobile-scroll">
+        <div className="flex items-center overflow-x-auto mb-4 scrollbar-hide mobile-scroll -mx-4 px-4">
           {categories.map((category, index) => (
             <div 
               key={category}
-              className={`flex items-center justify-center ${
-                index === 0 ? 'px-4' : 'pr-4'
-              } flex-shrink-0`}
+              className="flex items-center justify-center flex-shrink-0 pr-4 first:pl-0"
             >
-              <span className="text-foreground text-base md:text-lg font-medium whitespace-nowrap">
+              <span className="text-foreground text-sm sm:text-base md:text-lg font-medium whitespace-nowrap">
                 {category}
               </span>
             </div>

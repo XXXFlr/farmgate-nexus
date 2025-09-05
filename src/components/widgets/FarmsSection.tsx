@@ -25,28 +25,24 @@ export const FarmsSection: React.FC<FarmsSectionProps> = ({ farmUsers, loading }
 
   return (
     <div className="py-1 px-0 mb-4 md:mb-6">
-      <div className="flex overflow-x-auto scrollbar-hide mobile-scroll">
+      <div className="flex overflow-x-auto scrollbar-hide mobile-scroll -mx-4 px-4">
         {farmUsers.map((farmUser) => (
-          <div key={farmUser.id} className="px-2 sm:px-4 py-2 first:pl-4 last:pr-4 flex-shrink-0">
+          <div key={farmUser.id} className="flex-shrink-0 pr-3 first:pl-0 last:pr-4">
             <div 
-              className="bg-card rounded-xl animate-fade-in border border-border shadow-sm"
+              className="bg-card rounded-xl animate-fade-in border border-border shadow-sm w-40 sm:w-44 md:w-48"
               style={{
-                width: '180px',
-                minHeight: '280px',
+                minHeight: '240px',
               }}
             >
               {/* Card Content with responsive padding */}
-              <div className="p-2 sm:p-3 h-full">
+              <div className="p-3 h-full">
                 <div className="flex flex-col h-full items-start">
                   {/* Farm Image */}
-                  <div className="w-full mb-3 sm:mb-4">
+                  <div className="w-full mb-3">
                     <img
                       src={farmUser.photo_url || 'https://clqwofdhiwlqnwqshzfk.supabase.co/storage/v1/object/public/market-photos/HawaiiFarm.png'}
                       alt={farmUser.display_name || 'Farm'}
-                      className="w-full object-cover object-top rounded-lg"
-                      style={{ 
-                        height: '140px',
-                      }}
+                      className="w-full h-24 sm:h-28 md:h-32 object-cover object-top rounded-lg"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://clqwofdhiwlqnwqshzfk.supabase.co/storage/v1/object/public/market-photos/HawaiiFarm.png';
                       }}
@@ -54,9 +50,9 @@ export const FarmsSection: React.FC<FarmsSectionProps> = ({ farmUsers, loading }
                   </div>
                   
                   {/* Farm Name */}
-                  <div className="mb-auto">
+                  <div className="flex-1 mb-3">
                     <h4 
-                      className="text-foreground text-base sm:text-lg font-normal leading-tight line-clamp-2"
+                      className="text-foreground text-sm sm:text-base font-normal leading-tight line-clamp-2"
                       style={{ 
                         fontFamily: 'Outfit, sans-serif',
                         letterSpacing: '0.0px',
@@ -68,9 +64,9 @@ export const FarmsSection: React.FC<FarmsSectionProps> = ({ farmUsers, loading }
                   </div>
                   
                   {/* View Now Row */}
-                  <div className="flex items-center justify-between w-full mt-3 sm:mt-4">
+                  <div className="flex items-center justify-between w-full">
                     <span 
-                      className="text-muted-foreground text-xs sm:text-sm font-medium"
+                      className="text-muted-foreground text-xs font-medium"
                       style={{ 
                         fontFamily: 'Plus Jakarta Sans, sans-serif',
                         letterSpacing: '0.0px'
@@ -79,7 +75,7 @@ export const FarmsSection: React.FC<FarmsSectionProps> = ({ farmUsers, loading }
                       View Now
                     </span>
                     <ChevronRight 
-                      className="w-5 h-5 sm:w-6 sm:h-6 text-foreground flex-shrink-0" 
+                      className="w-4 h-4 text-foreground flex-shrink-0" 
                     />
                   </div>
                 </div>
