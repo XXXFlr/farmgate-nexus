@@ -35,8 +35,8 @@ const menuItems = [
   { title: 'Account', url: '/account', icon: MapPin },
   { title: 'Edit Profile', url: '/profile', icon: User },
   { title: 'Documents', url: '/documents', icon: FileText },
-  { title: 'My Products', url: '/my-products', icon: Package },
-  { title: 'Hosting', url: '/my-markets', icon: Store },
+  { title: 'My Products', url: '/vendor/products', icon: Package },
+  { title: 'Hosting', url: '/vendor/dashboard', icon: Store },
 ];
 
 export function AppSidebar() {

@@ -40,12 +40,12 @@ const HomePage = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground py-16">
+      <section className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground py-8 md:py-16">
         <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold mb-4 md:mb-6">
             Welcome to Local Markets
           </h1>
-          <p className="text-xl md:text-2xl mb-8 text-primary-foreground/90">
+          <p className="text-lg md:text-xl lg:text-2xl mb-6 md:mb-8 text-primary-foreground/90">
             Discover fresh, local products from farmers markets near you
           </p>
           
@@ -54,7 +54,7 @@ const HomePage = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search markets, products, vendors..."
+                placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyDown={handleKeyDown}
@@ -69,7 +69,7 @@ const HomePage = () => {
       </section>
 
       {/* Quick Actions */}
-      <section className="py-12">
+      <section className="py-6 md:py-12">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/markets")}>
