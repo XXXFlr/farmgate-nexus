@@ -303,14 +303,16 @@ const HomePage = () => {
               {farmUsers.map((farmUser, index) => (
                 <div key={farmUser.id} className="px-4 py-2 first:pl-4 last:pr-4">
                   <div 
-                    className="bg-white rounded-xl p-2 animate-fade-in"
+                    className="bg-white rounded-xl animate-fade-in"
                     style={{
                       width: '200px',
                       height: '100px',
                       boxShadow: '0 1px 4px rgba(15, 17, 19, 0.26)'
                     }}
                   >
-                    <div className="flex flex-col h-full">
+                    {/* 8px padding around the column - matching Flutter */}
+                    <div className="p-2 flex flex-col h-full">
+                      {/* Hero Image with ClipRRect 8px border radius */}
                       <div className="mb-0">
                         <img
                           src={farmUser.photo_url || 'https://clqwofdhiwlqnwqshzfk.supabase.co/storage/v1/object/public/market-photos/HawaiiFarm.png'}
@@ -318,38 +320,48 @@ const HomePage = () => {
                           className="w-full rounded-lg"
                           style={{ 
                             height: '220px',
-                            objectFit: 'cover'
+                            objectFit: 'cover',
+                            borderRadius: '8px'
                           }}
                         />
                       </div>
+                      
+                      {/* Display Name with 16px top padding */}
                       <div className="pt-4">
                         <h4 
-                          className="text-xl font-normal mb-0"
+                          className="text-xl font-normal"
                           style={{ 
                             fontFamily: 'Outfit, sans-serif',
                             color: '#0F1113',
                             fontSize: '20px',
-                            fontWeight: 'normal'
+                            fontWeight: 'normal',
+                            letterSpacing: '0.0px'
                           }}
                         >
                           {farmUser.display_name || 'Display Name'}
                         </h4>
-                        <div className="flex items-center justify-between mt-1">
-                          <span 
-                            className="text-sm font-medium"
-                            style={{ 
-                              fontFamily: 'Plus Jakarta Sans, sans-serif',
-                              color: '#57636C',
-                              fontSize: '14px',
-                              fontWeight: '500',
-                              paddingLeft: '4px',
-                              paddingTop: '4px'
-                            }}
-                          >
-                            View Now
-                          </span>
-                          <ChevronRight className="h-6 w-6 text-black" />
-                        </div>
+                      </div>
+                      
+                      {/* Row with View Now and Icon */}
+                      <div className="flex items-center justify-between w-full">
+                        <span 
+                          className="text-sm font-medium"
+                          style={{ 
+                            fontFamily: 'Plus Jakarta Sans, sans-serif',
+                            color: '#57636C',
+                            fontSize: '14px',
+                            fontWeight: '500',
+                            letterSpacing: '0.0px',
+                            paddingLeft: '4px',
+                            paddingTop: '4px'
+                          }}
+                        >
+                          View Now
+                        </span>
+                        <ChevronRight 
+                          className="text-black" 
+                          style={{ width: '24px', height: '24px' }} 
+                        />
                       </div>
                     </div>
                   </div>
