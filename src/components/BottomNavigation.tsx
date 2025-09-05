@@ -1,20 +1,21 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, MapPin, Store, Truck, MessageCircle } from 'lucide-react';
+import { Home, MapPin, Store, Truck, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface NavigationItem {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   path: string;
+  activeIndex: number;
 }
 
 const navigationItems: NavigationItem[] = [
-  { icon: Home, label: 'Home', path: '/' },
-  { icon: MapPin, label: 'Map', path: '/map' },
-  { icon: Store, label: 'Markets', path: '/markets' },
-  { icon: Truck, label: 'Vendors', path: '/vendors' },
-  { icon: MessageCircle, label: 'Chat', path: '/chat' },
+  { icon: Home, label: 'Home', path: '/', activeIndex: 0 },
+  { icon: MapPin, label: 'Map', path: '/map', activeIndex: 1 },
+  { icon: Store, label: 'Markets', path: '/markets', activeIndex: 2 },
+  { icon: Truck, label: 'Vendors', path: '/vendors', activeIndex: 3 },
+  { icon: MessageSquare, label: 'Chat', path: '/chat', activeIndex: 4 },
 ];
 
 export function BottomNavigation() {
