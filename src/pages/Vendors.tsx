@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Search, MapPin, Package, Star, User, Store } from 'lucide-react';
+import { ArrowLeft, Search, MapPin, Package, Star, User, Store, Filter } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +18,13 @@ interface Vendor {
   country: string | null; 
   created_at: string;
   productCount?: number;
+  categories?: string[];
+}
+
+interface Category {
+  category_id: string;
+  category_name: string;
+  description: string | null;
 }
 
 const Vendors = () => {
@@ -25,12 +32,29 @@ const Vendors = () => {
   const { user } = useFirebaseAuth();
   const { toast } = useToast();
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   useEffect(() => {
     fetchVendors();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .order('category_name');
+
+      if (error) throw error;
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const fetchVendors = async () => {
     try {
@@ -39,13 +63,16 @@ const Vendors = () => {
         .from('users')
         .select(`
           *,
-          products!inner(count)
+          products!inner(count),
+          user_categories(
+            categories(category_name)
+          )
         `)
         .not('products.product_id', 'is', null);
 
       if (error) throw error;
 
-      // Count products for each vendor
+      // Process vendors with their categories and product counts
       const vendorsWithCounts = await Promise.all(
         (vendorsWithProducts || []).map(async (vendor) => {
           const { count } = await supabase
@@ -54,9 +81,15 @@ const Vendors = () => {
             .eq('user_id', vendor.id)
             .eq('is_active', true);
 
+          // Extract category names
+          const categories = vendor.user_categories?.map((uc: any) => 
+            uc.categories?.category_name
+          ).filter(Boolean) || [];
+
           return {
             ...vendor,
-            productCount: count || 0
+            productCount: count || 0,
+            categories
           };
         })
       );
@@ -74,11 +107,16 @@ const Vendors = () => {
     }
   };
 
-  const filteredVendors = vendors.filter(vendor =>
-    vendor.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    vendor.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    vendor.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredVendors = vendors.filter(vendor => {
+    const matchesSearch = vendor.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vendor.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      vendor.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCategory = !selectedCategory || 
+      vendor.categories?.some(cat => cat.toLowerCase() === selectedCategory.toLowerCase());
+    
+    return matchesSearch && matchesCategory;
+  });
 
   const handleVendorClick = (vendor: Vendor) => {
     // Navigate to vendor's profile or products
@@ -108,8 +146,8 @@ const Vendors = () => {
       </header>
 
       <div className="px-4 py-4 md:py-8 max-w-7xl mx-auto">
-        {/* Search */}
-        <div className="mb-6">
+        {/* Search and Filters */}
+        <div className="mb-6 space-y-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -118,6 +156,32 @@ const Vendors = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 h-12 text-base"
             />
+          </div>
+          
+          {/* Category Filter */}
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide mobile-scroll pb-2">
+              <Button
+                variant={selectedCategory === '' ? "default" : "outline"}
+                onClick={() => setSelectedCategory('')}
+                size="sm"
+                className="whitespace-nowrap flex-shrink-0"
+              >
+                All Categories
+              </Button>
+              {categories.map((category) => (
+                <Button
+                  key={category.category_id}
+                  variant={selectedCategory === category.category_name ? "default" : "outline"}
+                  onClick={() => setSelectedCategory(category.category_name)}
+                  size="sm"
+                  className="whitespace-nowrap flex-shrink-0 capitalize"
+                >
+                  {category.category_name}
+                </Button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -131,8 +195,8 @@ const Vendors = () => {
             <Store className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-semibold mb-2">No vendors found</h3>
             <p className="text-muted-foreground mb-4">
-              {searchQuery ? 
-                'Try adjusting your search terms' : 
+              {searchQuery || selectedCategory ? 
+                'Try adjusting your search or filters' : 
                 'No active vendors available yet'
               }
             </p>
@@ -192,6 +256,22 @@ const Vendors = () => {
                     <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
                       {vendor.description}
                     </p>
+                  )}
+                  
+                  {/* Vendor Categories */}
+                  {vendor.categories && vendor.categories.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {vendor.categories.slice(0, 2).map((category, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs capitalize">
+                          {category}
+                        </Badge>
+                      ))}
+                      {vendor.categories.length > 2 && (
+                        <Badge variant="outline" className="text-xs">
+                          +{vendor.categories.length - 2}
+                        </Badge>
+                      )}
+                    </div>
                   )}
                   
                   <div className="flex items-center justify-between">
