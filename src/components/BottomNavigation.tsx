@@ -12,9 +12,9 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   { icon: Home, label: 'Home', path: '/', activeIndex: 0 },
-  { icon: MapPin, label: 'Explore', path: '/map', activeIndex: 1 },
-  { icon: Store, label: 'Add', path: '/products/create', activeIndex: 2 },
-  { icon: Truck, label: 'List', path: '/products', activeIndex: 3 },
+  { icon: MapPin, label: 'Map', path: '/map', activeIndex: 1 },
+  { icon: Store, label: 'Markets', path: '/markets', activeIndex: 2 },
+  { icon: Truck, label: 'Vendors', path: '/vendors', activeIndex: 3 },
   { icon: MessageSquare, label: 'Chat', path: '/chat', activeIndex: 4 },
 ];
 
