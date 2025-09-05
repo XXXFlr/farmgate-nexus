@@ -17,6 +17,12 @@ import AddEvent from "./pages/AddEvent";
 import EditEvent from "./pages/EditEvent";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
+import Products from "./pages/Products";
+import CreateProduct from "./pages/CreateProduct";
+import ProductDetails from "./pages/ProductDetails";
+import VendorDashboard from "./pages/VendorDashboard";
+import VendorProducts from "./pages/VendorProducts";
+import Search from "./pages/Search";
 
 const queryClient = new QueryClient();
 
@@ -40,14 +46,32 @@ const AppRouter = () => {
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/" element={<HomePage />} />
-        <Route path="/markets/:marketId" element={<MarketDetails />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/account" element={<Account />} />
-        <Route path="/add-event" element={<AddEvent />} />
-        <Route path="/edit-event/:marketId" element={<EditEvent />} />
-        <Route path="/map" element={<Map />} />
+        <Route path="/search" element={<Search />} />
+        
+        {/* Market Routes */}
         <Route path="/markets" element={<Markets />} />
         <Route path="/markets/create" element={<CreateMarket />} />
+        <Route path="/markets/:marketId" element={<MarketDetails />} />
+        
+        {/* Product Routes */}
+        <Route path="/products" element={<Products />} />
+        <Route path="/products/create" element={<CreateProduct />} />
+        <Route path="/products/:productId" element={<ProductDetails />} />
+        
+        {/* Vendor Routes */}
+        <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+        <Route path="/vendor/products" element={<VendorProducts />} />
+        
+        {/* User Routes */}
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/account" element={<Account />} />
+        
+        {/* Event Routes */}
+        <Route path="/add-event" element={<AddEvent />} />
+        <Route path="/edit-event/:marketId" element={<EditEvent />} />
+        
+        {/* Other Routes */}
+        <Route path="/map" element={<Map />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
