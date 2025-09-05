@@ -52,11 +52,9 @@ export function AppLayout({
             <header className="h-14 flex items-center justify-between px-4 border-b border-border bg-card sticky top-0 z-40">
               <div className="flex items-center gap-3">
                 {showSidebar && (
-                  <SidebarTrigger asChild className="md:hidden">
-                    <Button variant="ghost" size="sm">
-                      <Menu className="h-5 w-5" />
-                    </Button>
-                  </SidebarTrigger>
+                  <Button variant="ghost" size="sm" onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="md:hidden">
+                    <Menu className="h-5 w-5" />
+                  </Button>
                 )}
                 <h1 className="text-xl font-bold text-foreground">{title}</h1>
               </div>

@@ -9,7 +9,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { format } from 'date-fns';
 import { useSidebarContext } from '@/components/AppLayout';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 
 interface Market {
   market_id: string;
@@ -79,11 +78,9 @@ const HomePage = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-primary text-white px-4 py-3 flex items-center gap-3 md:hidden">
-        <SidebarTrigger asChild>
-          <Button variant="ghost" size="sm" onClick={toggleSidebar}>
-            <Menu className="h-5 w-5" />
-          </Button>
-        </SidebarTrigger>
+        <Button variant="ghost" size="sm" onClick={toggleSidebar}>
+          <Menu className="h-5 w-5" />
+        </Button>
         <h1 className="text-xl font-semibold">Home</h1>
       </header>
 
