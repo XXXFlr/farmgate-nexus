@@ -75,7 +75,7 @@ const HomePage = () => {
   };
 
   const categories = [
-    'All', 'Markets', 'Farms', 'Home Growers', 'Food Trucks'
+    'All', 'Markets', 'Farms', 'Home Growers', 'Food Trucks', 'Drinks', 'Food'
   ];
 
   return (
@@ -125,18 +125,18 @@ const HomePage = () => {
         </div>
 
         {/* Category Tabs */}
-        <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide">
-          {categories.map((category) => (
-            <button
+        <div className="flex items-center overflow-x-auto mb-4 scrollbar-hide">
+          {categories.map((category, index) => (
+            <div 
               key={category}
-              className={`px-4 py-2 rounded-full whitespace-nowrap text-sm font-medium transition-colors ${
-                category === 'All' 
-                  ? 'bg-amber-700 text-white shadow-sm' 
-                  : 'bg-white text-amber-800 border border-amber-200 hover:bg-amber-50'
+              className={`flex items-center justify-center ${
+                index === 0 ? 'px-4' : 'pr-4'
               }`}
             >
-              {category}
-            </button>
+              <span className="text-gray-800 text-lg font-medium whitespace-nowrap">
+                {category}
+              </span>
+            </div>
           ))}
         </div>
 
