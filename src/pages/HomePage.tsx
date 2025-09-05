@@ -149,8 +149,52 @@ const HomePage = () => {
         }}
       />
 
-      {/* Header - Always visible on mobile */}
-      <header className="bg-teal-500 text-white px-4 py-3 flex items-center gap-3 sticky top-0 z-50 md:hidden">
+      {/* Mobile App Bar with Profile Avatar and Search - Only visible on mobile */}
+      <div className="md:hidden">
+        <div 
+          className="relative h-24 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots/background.jpg')`
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/40" />
+          <div className="relative flex items-center justify-between h-full px-4 pt-10">
+            {/* Profile Avatar */}
+            <button 
+              onClick={toggleSidebar}
+              className="w-12 h-12 rounded-full border-2 border-accent/50 bg-accent/30 overflow-hidden flex-shrink-0"
+            >
+              <img
+                src={user?.photoURL || 'https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots//man.png'}
+                alt="Profile"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots//man.png';
+                }}
+              />
+            </button>
+
+            {/* Search Bar */}
+            <div className="flex-1 mx-4">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-primary" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <header className="hidden md:flex bg-teal-500 text-white px-4 py-3 items-center gap-3 sticky top-0 z-50">
         <button 
           onClick={toggleSidebar}
           className="p-2 hover:bg-white/10 rounded-lg transition-colors"
@@ -163,24 +207,6 @@ const HomePage = () => {
       </header>
 
       <div className="px-4 py-4 pb-20 md:pb-4 relative z-10">
-        {/* Search Bar with Profile */}
-        <div className="relative mb-4">
-          <div className="flex items-center gap-3 bg-white rounded-full p-3 shadow-sm border border-gray-200">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-semibold text-sm border-2 border-green-200">
-              U
-            </div>
-            <div className="flex items-center flex-1">
-              <Search className="h-5 w-5 text-gray-400 mr-3" />
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-transparent focus:outline-none text-gray-700 placeholder-gray-400"
-              />
-            </div>
-          </div>
-        </div>
 
         {/* Category Tabs */}
         <div className="flex items-center overflow-x-auto mb-4 scrollbar-hide">
