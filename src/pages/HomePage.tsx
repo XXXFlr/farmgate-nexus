@@ -141,32 +141,75 @@ const HomePage = () => {
         </div>
 
         {/* Hero Section */}
-        <div className="relative mb-6 rounded-2xl overflow-hidden shadow-lg">
+        <div className="mb-6">
           <div 
-            className="h-80 bg-cover bg-center relative"
+            className="w-full rounded-xl p-3 pb-2"
             style={{
-              backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1488459716781-31db52582fe9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80')`
+              backgroundColor: 'rgba(15, 17, 19, 0.26)',
             }}
           >
-            <div className="absolute top-4 left-4">
-              <div className="bg-orange-500 text-white px-3 py-1 rounded text-sm font-medium">
-                Text
-              </div>
-            </div>
-            <div className="absolute bottom-8 left-6 right-6 text-white">
-              <h2 className="text-4xl font-bold mb-2 leading-tight">Local harvest</h2>
-              <h2 className="text-4xl font-bold mb-4 leading-tight">Local people</h2>
-              <p className="text-lg mb-6 max-w-md opacity-90">
-                Get to Know Nearby Farmers and Discover Their Unique Stories!
-              </p>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex -space-x-2">
-                  <div className="w-12 h-12 rounded-full bg-orange-400 border-2 border-white"></div>
-                  <div className="w-12 h-12 rounded-full bg-green-400 border-2 border-white"></div>
-                  <div className="w-12 h-12 rounded-full bg-blue-400 border-2 border-white"></div>
+            <div className="flex flex-col">
+              <div className="mb-4">
+                <div className="rounded-lg">
+                  <h2 
+                    className="text-white text-4xl font-medium leading-tight"
+                    style={{
+                      fontFamily: 'Outfit, sans-serif',
+                      textShadow: '3px 3px 3px rgba(0,0,0,0.3)'
+                    }}
+                  >
+                    Local harvest<br />Local people
+                  </h2>
                 </div>
               </div>
-              <button className="bg-amber-700 hover:bg-amber-800 text-white px-8 py-3 rounded-xl font-medium transition-colors shadow-lg">
+              
+              <div className="mb-2">
+                <p 
+                  className="text-white text-base font-normal"
+                  style={{ fontFamily: 'Outfit, sans-serif' }}
+                >
+                  Get to Know Nearby Farmers and Discover Their Unique Stories!
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-1 mb-3">
+                <button 
+                  className="mr-1"
+                  onClick={() => navigate('/news')}
+                >
+                  <img 
+                    src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8dXNlcnxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=900&q=60"
+                    alt="User"
+                    className="w-11 h-11 rounded-full object-cover"
+                  />
+                </button>
+                <button 
+                  className="mr-1"
+                  onClick={() => navigate('/news')}
+                >
+                  <img 
+                    src="https://images.unsplash.com/photo-1533689476487-034f57831a58?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTA4fHx1c2VyfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=900&q=60"
+                    alt="User"
+                    className="w-11 h-11 rounded-full object-cover"
+                  />
+                </button>
+                <button 
+                  className="mr-1"
+                  onClick={() => navigate('/news')}
+                >
+                  <img 
+                    src="https://images.unsplash.com/photo-1543610892-0b1f7e6d8ac1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTE1fHx1c2VyfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=900&q=60"
+                    alt="User"
+                    className="w-11 h-11 rounded-full object-cover"
+                  />
+                </button>
+              </div>
+              
+              <button
+                onClick={() => navigate('/news')}
+                className="w-full h-11 bg-primary text-white text-base font-normal rounded-xl shadow-sm border border-transparent"
+                style={{ fontFamily: 'Outfit, sans-serif' }}
+              >
                 Explore Now
               </button>
             </div>
