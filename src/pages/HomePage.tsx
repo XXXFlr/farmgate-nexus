@@ -310,58 +310,63 @@ const HomePage = () => {
                       boxShadow: '0 1px 4px rgba(15, 17, 19, 0.26)'
                     }}
                   >
-                    {/* 8px padding around the column - matching Flutter */}
-                    <div className="p-2 flex flex-col h-full">
-                      {/* Hero Image with ClipRRect 8px border radius */}
-                      <div className="mb-0">
-                        <img
-                          src={farmUser.photo_url || 'https://clqwofdhiwlqnwqshzfk.supabase.co/storage/v1/object/public/market-photos/HawaiiFarm.png'}
-                          alt={farmUser.display_name || 'Farm'}
-                          className="w-full rounded-lg"
-                          style={{ 
-                            height: '220px',
-                            objectFit: 'cover',
-                            borderRadius: '8px'
-                          }}
-                        />
-                      </div>
-                      
-                      {/* Display Name with 16px top padding */}
-                      <div className="pt-4">
-                        <h4 
-                          className="text-xl font-normal"
-                          style={{ 
-                            fontFamily: 'Outfit, sans-serif',
-                            color: '#0F1113',
-                            fontSize: '20px',
-                            fontWeight: 'normal',
-                            letterSpacing: '0.0px'
-                          }}
-                        >
-                          {farmUser.display_name || 'Display Name'}
-                        </h4>
-                      </div>
-                      
-                      {/* Row with View Now and Icon */}
-                      <div className="flex items-center justify-between w-full">
-                        <span 
-                          className="text-sm font-medium"
-                          style={{ 
-                            fontFamily: 'Plus Jakarta Sans, sans-serif',
-                            color: '#57636C',
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            letterSpacing: '0.0px',
-                            paddingLeft: '4px',
-                            paddingTop: '4px'
-                          }}
-                        >
-                          View Now
-                        </span>
-                        <ChevronRight 
-                          className="text-black" 
-                          style={{ width: '24px', height: '24px' }} 
-                        />
+                    {/* Exact Flutter Column structure with 8px padding */}
+                    <div className="p-2 h-full">
+                      <div className="flex flex-col h-full items-start">
+                        {/* Hero Image with ClipRRect borderRadius 8px */}
+                        <div className="w-full mb-0">
+                          <img
+                            src={farmUser.photo_url || 'https://clqwofdhiwlqnwqshzfk.supabase.co/storage/v1/object/public/market-photos/HawaiiFarm.png'}
+                            alt={farmUser.display_name || 'Farm'}
+                            className="w-full"
+                            style={{ 
+                              height: '220px',
+                              objectFit: 'contain',
+                              objectPosition: 'top',
+                              borderRadius: '8px'
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Display Name with exact 16px top padding */}
+                        <div style={{ paddingTop: '16px' }}>
+                          <h4 
+                            style={{ 
+                              fontFamily: 'Outfit, sans-serif',
+                              color: '#0F1113',
+                              fontSize: '20px',
+                              fontWeight: 'normal',
+                              letterSpacing: '0.0px',
+                              margin: 0
+                            }}
+                          >
+                            {farmUser.display_name || 'Display Name'}
+                          </h4>
+                        </div>
+                        
+                        {/* Row with exact spacing and alignment */}
+                        <div className="flex items-center justify-between w-full">
+                          <div style={{ paddingLeft: '4px', paddingTop: '4px' }}>
+                            <span 
+                              style={{ 
+                                fontFamily: 'Plus Jakarta Sans, sans-serif',
+                                color: '#57636C',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                letterSpacing: '0.0px'
+                              }}
+                            >
+                              View Now
+                            </span>
+                          </div>
+                          <ChevronRight 
+                            style={{ 
+                              width: '24px', 
+                              height: '24px',
+                              color: 'black'
+                            }} 
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
