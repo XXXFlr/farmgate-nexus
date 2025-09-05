@@ -1,241 +1,480 @@
-import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, Plus, Store, ShoppingBag, TrendingUp } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
-import { toast } from "sonner";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, MapPin, Plus, Search, Map, Menu, ChevronRight } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
+import { format } from 'date-fns';
+import { useSidebarContext } from '@/components/AppLayout';
+
+interface Market {
+  market_id: string;
+  market_name: string;
+  description: string;
+  date: string;
+  time: string;
+  latitude: number;
+  longitude: number;
+  status: string;
+  creator_id: string;
+}
+
+interface FarmUser {
+  id: string;
+  display_name: string | null;
+  photo_url: string | null;
+}
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { user } = useFirebaseAuth();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [featuredMarkets] = useState([]);
-  const [recentProducts] = useState([]);
-  const [loading] = useState(false);
+  const { toggleSidebar } = useSidebarContext();
+  const [markets, setMarkets] = useState<Market[]>([]);
+  const [filteredMarkets, setFilteredMarkets] = useState<Market[]>([]);
+  const [farmUsers, setFarmUsers] = useState<FarmUser[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [farmsLoading, setFarmsLoading] = useState(true);
 
-  const handleSearch = () => {
-    if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
-    }
-  };
+  useEffect(() => {
+    fetchMarkets();
+    fetchFarmUsers();
+  }, []);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
+  useEffect(() => {
+    const filtered = markets.filter(market =>
+      market.market_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      market.description?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-  }
+    setFilteredMarkets(filtered);
+  }, [markets, searchQuery]);
+
+  const fetchMarkets = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('markets')
+        .select('*')
+        .eq('status', 'approved')
+        .order('date', { ascending: true });
+
+      if (error) throw error;
+      setMarkets(data || []);
+    } catch (error) {
+      console.error('Error fetching markets:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFarmUsers = async () => {
+    try {
+      // First, get the "Farms" category ID
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('categories')
+        .select('category_id')
+        .eq('category_name', 'Farms')
+        .single();
+
+      if (categoryError || !categoryData) {
+        console.error('Error fetching Farms category:', categoryError);
+        setFarmsLoading(false);
+        return;
+      }
+
+      // Then get users who are categorized as farms
+      const { data: userCategoryData, error: userCategoryError } = await supabase
+        .from('user_categories')
+        .select(`
+          user_id,
+          users!inner(
+            id,
+            display_name,
+            photo_url
+          )
+        `)
+        .eq('category_id', categoryData.category_id);
+
+      if (userCategoryError) {
+        console.error('Error fetching farm users:', userCategoryError);
+        setFarmsLoading(false);
+        return;
+      }
+
+      // Transform the data to match our interface
+      const farmUsersList: FarmUser[] = userCategoryData?.map((item: any) => ({
+        id: item.users.id,
+        display_name: item.users.display_name,
+        photo_url: item.users.photo_url
+      })) || [];
+
+      setFarmUsers(farmUsersList);
+    } catch (error) {
+      console.error('Error fetching farm users:', error);
+    } finally {
+      setFarmsLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Date TBD';
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy');
+    } catch {
+      return 'Date TBD';
+    }
+  };
+
+  const formatTime = (timeString: string) => {
+    if (!timeString) return 'Time TBD';
+    return timeString;
+  };
+
+  const categories = [
+    'All', 'Markets', 'Farms', 'Home Growers', 'Food Trucks', 'Drinks', 'Food'
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-primary to-primary/80 text-primary-foreground py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
-            Welcome to Local Markets
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 text-primary-foreground/90">
-            Discover fresh, local products from farmers markets near you
-          </p>
-          
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto flex gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search markets, products, vendors..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="pl-10 bg-white/90 backdrop-blur"
+    <div className="min-h-screen" style={{ 
+      background: 'linear-gradient(135deg, #fdf6e3 0%, #f5f1e8 100%)'
+    }}>
+      {/* Botanical Pattern Background */}
+      <div 
+        className="fixed inset-0 opacity-5 pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23059669' fill-opacity='0.1'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm0 0c0 11.046 8.954 20 20 20s20-8.954 20-20-8.954-20-20-20-20 8.954-20 20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundSize: '60px 60px'
+        }}
+      />
+
+      {/* Mobile App Bar with Profile Avatar and Search - Only visible on mobile */}
+      <div className="md:hidden">
+        <div 
+          className="relative h-24 bg-cover bg-center"
+          style={{
+            backgroundImage: `url('https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots/background.jpg')`
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/40" />
+          <div className="relative flex items-center justify-between h-full px-4 pt-10">
+            {/* Profile Avatar with Flutter styling */}
+            <button 
+              onClick={toggleSidebar}
+              className="w-12 h-12 rounded-full border-2 border-accent flex-shrink-0 p-0.5 transition-all duration-200 hover:scale-105"
+              style={{
+                backgroundColor: 'rgba(57, 210, 192, 0.3)', // Color(0x4C39D2C0) converted to rgba
+              }}
+            >
+              <img
+                src={user?.photoURL || 'https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots//man.png'}
+                alt="Profile"
+                className="w-full h-full object-cover rounded-full"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots//man.png';
+                }}
               />
+            </button>
+
+            {/* Search Bar */}
+            <div className="flex-1 mx-4">
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-primary" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 bg-white rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
+                />
+              </div>
             </div>
-            <Button onClick={handleSearch} size="lg" variant="secondary">
-              Search
-            </Button>
           </div>
         </div>
-      </section>
+      </div>
 
-      {/* Quick Actions */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/markets")}>
-              <CardContent className="p-6 text-center">
-                <Store className="h-8 w-8 mx-auto mb-3 text-primary" />
-                <h3 className="font-semibold">Browse Markets</h3>
-                <p className="text-sm text-muted-foreground">Find local farmers markets</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/products")}>
-              <CardContent className="p-6 text-center">
-                <ShoppingBag className="h-8 w-8 mx-auto mb-3 text-primary" />
-                <h3 className="font-semibold">Shop Products</h3>
-                <p className="text-sm text-muted-foreground">Discover fresh products</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/map")}>
-              <CardContent className="p-6 text-center">
-                <MapPin className="h-8 w-8 mx-auto mb-3 text-primary" />
-                <h3 className="font-semibold">Map View</h3>
-                <p className="text-sm text-muted-foreground">Explore nearby markets</p>
-              </CardContent>
-            </Card>
-            
-            {user && (
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate("/vendor/dashboard")}>
-                <CardContent className="p-6 text-center">
-                  <Plus className="h-8 w-8 mx-auto mb-3 text-primary" />
-                  <h3 className="font-semibold">Vendor Portal</h3>
-                  <p className="text-sm text-muted-foreground">Manage your business</p>
-                </CardContent>
-              </Card>
-            )}
+      {/* Desktop Header */}
+      <header className="hidden md:flex bg-teal-500 text-white px-4 py-3 items-center gap-3 sticky top-0 z-50">
+        <button 
+          onClick={toggleSidebar}
+          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+        >
+          <Menu className="h-6 w-6" />
+        </button>
+        <div className="bg-teal-600 text-white px-3 py-1 rounded text-sm font-medium">
+          HomePage
+        </div>
+      </header>
+
+      <div className="px-4 py-4 pb-20 md:pb-4 relative z-10">
+
+        {/* Category Tabs */}
+        <div className="flex items-center overflow-x-auto mb-4 scrollbar-hide">
+          {categories.map((category, index) => (
+            <div 
+              key={category}
+              className={`flex items-center justify-center ${
+                index === 0 ? 'px-4' : 'pr-4'
+              }`}
+            >
+              <span className="text-gray-800 text-lg font-medium whitespace-nowrap">
+                {category}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Hero Section */}
+        <div className="mb-6">
+          <div 
+            className="w-full rounded-xl p-3 pb-2"
+            style={{
+              backgroundColor: 'rgba(15, 17, 19, 0.26)',
+            }}
+          >
+            <div className="flex flex-col">
+              <div className="mb-4">
+                <div className="rounded-lg">
+                  <h2 
+                    className="text-white text-4xl font-medium leading-tight"
+                    style={{
+                      fontFamily: 'Outfit, sans-serif',
+                      textShadow: '3px 3px 3px rgba(0,0,0,0.3)'
+                    }}
+                  >
+                    Local harvest<br />Local people
+                  </h2>
+                </div>
+              </div>
+              
+              <div className="mb-2">
+                <p 
+                  className="text-white text-base font-normal"
+                  style={{ fontFamily: 'Outfit, sans-serif' }}
+                >
+                  Get to Know Nearby Farmers and Discover Their Unique Stories!
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-1 mb-3">
+                <button 
+                  className="mr-1"
+                  onClick={() => navigate('/news')}
+                >
+                  <img 
+                    src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8dXNlcnxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=900&q=60"
+                    alt="User"
+                    className="w-11 h-11 rounded-full object-cover"
+                  />
+                </button>
+                <button 
+                  className="mr-1"
+                  onClick={() => navigate('/news')}
+                >
+                  <img 
+                    src="https://images.unsplash.com/photo-1533689476487-034f57831a58?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTA4fHx1c2VyfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=900&q=60"
+                    alt="User"
+                    className="w-11 h-11 rounded-full object-cover"
+                  />
+                </button>
+                <button 
+                  className="mr-1"
+                  onClick={() => navigate('/news')}
+                >
+                  <img 
+                    src="https://images.unsplash.com/photo-1543610892-0b1f7e6d8ac1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTE1fHx1c2VyfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=900&q=60"
+                    alt="User"
+                    className="w-11 h-11 rounded-full object-cover"
+                  />
+                </button>
+              </div>
+              
+              <button
+                onClick={() => navigate('/news')}
+                className="w-full h-11 bg-primary text-white text-base font-normal rounded-xl shadow-sm border border-transparent"
+                style={{ fontFamily: 'Outfit, sans-serif' }}
+              >
+                Explore Now
+              </button>
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* Featured Markets */}
-      <section className="py-12 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">Featured Markets</h2>
-            <Button variant="outline" onClick={() => navigate("/markets")}>
-              View All Markets
-            </Button>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            {featuredMarkets.map((market) => (
-              <Card key={market.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate(`/markets/${market.id}`)}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-xl">{market.name}</CardTitle>
-                      <CardDescription className="flex items-center gap-1 mt-2">
-                        <MapPin className="h-4 w-4" />
-                        {market.location}
-                      </CardDescription>
-                    </div>
-                    <Badge variant="secondary">
-                      {market.status}
-                    </Badge>
+        {/* Vendors Section */}
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Vendors</h3>
+          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
+            {[1, 2, 3, 4].map((vendor) => (
+              <div key={vendor} className="flex flex-col items-center min-w-[100px]">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 via-blue-400 to-green-500 p-1 mb-3 shadow-lg">
+                  <div className="w-full h-full rounded-full bg-green-100 flex items-center justify-center relative overflow-hidden">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full"></div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground line-clamp-3">
-                    {market.description}
-                  </p>
-                </CardContent>
-              </Card>
+                </div>
+                <span className="text-sm font-semibold text-gray-800">[Display Name]</span>
+                <span className="text-xs text-gray-500">type</span>
+              </div>
             ))}
           </div>
         </div>
-      </section>
 
-      {/* Recent Products */}
-      <section className="py-12">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">Fresh Products</h2>
-            <Button variant="outline" onClick={() => navigate("/products")}>
-              View All Products
-            </Button>
-          </div>
-          
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {recentProducts.map((product) => (
-              <Card key={product.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => navigate(`/products/${product.id}`)}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">{product.name}</CardTitle>
-                      <CardDescription>
-                        {product.markets?.name}
-                      </CardDescription>
+        {/* Farms Section */}
+        <div className="py-1 px-0 mb-2">
+          {farmsLoading ? (
+            <div className="flex justify-center py-4">
+              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <div className="flex overflow-x-auto scrollbar-hide">
+              {farmUsers.map((farmUser, index) => (
+                <div key={farmUser.id} className="px-4 py-2 first:pl-4 last:pr-4">
+                  <div 
+                    className="bg-white rounded-xl animate-fade-in"
+                    style={{
+                      width: '200px',
+                      height: '100px',
+                      boxShadow: '0 1px 4px rgba(15, 17, 19, 0.26)'
+                    }}
+                  >
+                    {/* Exact Flutter Column structure with 8px padding */}
+                    <div className="p-2 h-full">
+                      <div className="flex flex-col h-full items-start">
+                        {/* Hero Image with ClipRRect borderRadius 8px */}
+                        <div className="w-full mb-0">
+                          <img
+                            src={farmUser.photo_url || 'https://clqwofdhiwlqnwqshzfk.supabase.co/storage/v1/object/public/market-photos/HawaiiFarm.png'}
+                            alt={farmUser.display_name || 'Farm'}
+                            className="w-full"
+                            style={{ 
+                              height: '220px',
+                              objectFit: 'contain',
+                              objectPosition: 'top',
+                              borderRadius: '8px'
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Display Name with exact 16px top padding */}
+                        <div style={{ paddingTop: '16px' }}>
+                          <h4 
+                            style={{ 
+                              fontFamily: 'Outfit, sans-serif',
+                              color: '#0F1113',
+                              fontSize: '20px',
+                              fontWeight: 'normal',
+                              letterSpacing: '0.0px',
+                              margin: 0
+                            }}
+                          >
+                            {farmUser.display_name || 'Display Name'}
+                          </h4>
+                        </div>
+                        
+                        {/* Row with exact spacing and alignment */}
+                        <div className="flex items-center justify-between w-full">
+                          <div style={{ paddingLeft: '4px', paddingTop: '4px' }}>
+                            <span 
+                              style={{ 
+                                fontFamily: 'Plus Jakarta Sans, sans-serif',
+                                color: '#57636C',
+                                fontSize: '14px',
+                                fontWeight: '500',
+                                letterSpacing: '0.0px'
+                              }}
+                            >
+                              View Now
+                            </span>
+                          </div>
+                          <ChevronRight 
+                            style={{ 
+                              width: '24px', 
+                              height: '24px',
+                              color: 'black'
+                            }} 
+                          />
+                        </div>
+                      </div>
                     </div>
-                    <Badge variant="outline">
-                      ${product.price}
-                    </Badge>
                   </div>
-                </CardHeader>
-                {product.description && (
-                  <CardContent>
-                    <p className="text-muted-foreground line-clamp-2">
-                      {product.description}
-                    </p>
-                  </CardContent>
-                )}
-              </Card>
-            ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Featured Markets */}
+        {filteredMarkets.length > 0 && (
+          <div className="mb-6">
+            <div className="grid gap-4">
+              {filteredMarkets.slice(0, 2).map((market) => (
+                <div 
+                  key={market.market_id}
+                  className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => navigate(`/market/${market.market_id}`)}
+                >
+                  <div 
+                    className="h-48 bg-cover bg-center"
+                    style={{
+                      backgroundImage: `url('https://images.unsplash.com/photo-1488459716781-31db52582fe9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80')`
+                    }}
+                  />
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>{formatDate(market.date)} • {formatTime(market.time)}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                      <MapPin className="h-4 w-4 text-red-500" />
+                      <span>Location</span>
+                    </div>
+                    <p className="text-gray-700 font-semibold mb-2">@[Display Name]</p>
+                    <p className="text-gray-600 mb-3">{market.description || 'Market Description'}</p>
+                    <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <div className="w-4 h-4 bg-amber-600 rounded"></div>
+                        <span>35</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-4 h-4 bg-gray-400 rounded"></div>
+                        <span>897</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Produce Section */}
+        <div className="mb-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Produce</h3>
+          <div className="grid gap-4">
+            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+              <div className="flex gap-4">
+                <div 
+                  className="w-20 h-20 rounded-xl bg-cover bg-center flex-shrink-0"
+                  style={{
+                    backgroundImage: `url('https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80')`
+                  }}
+                />
+                <div className="flex-1">
+                  <h4 className="font-bold text-gray-800 text-lg mb-1">Apple Bananas</h4>
+                  <p className="text-sm text-gray-600 mb-1">@[Display Name]</p>
+                  <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
+                    <MapPin className="h-3 w-3 text-red-500" />
+                    <span>Address</span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-800">$0</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Call to Action */}
-      {!user && (
-        <section className="py-16 bg-primary text-primary-foreground">
-          <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-4">Join Our Community</h2>
-            <p className="text-xl mb-8 text-primary-foreground/90">
-              Connect with local farmers and discover the freshest products
-            </p>
-            <Button size="lg" variant="secondary" onClick={() => navigate("/auth")}>
-              Get Started
-            </Button>
-          </div>
-        </section>
-      )}
-
-      {/* Stats Section */}
-      <section className="py-12 bg-muted/50">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="flex items-center justify-center mb-2">
-                <TrendingUp className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-2xl font-bold">{featuredMarkets.length}+</h3>
-              <p className="text-muted-foreground">Active Markets</p>
-            </div>
-            <div>
-              <div className="flex items-center justify-center mb-2">
-                <ShoppingBag className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-2xl font-bold">{recentProducts.length}+</h3>
-              <p className="text-muted-foreground">Fresh Products</p>
-            </div>
-            <div>
-              <div className="flex items-center justify-center mb-2">
-                <Store className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-2xl font-bold">50+</h3>
-              <p className="text-muted-foreground">Local Vendors</p>
-            </div>
-            <div>
-              <div className="flex items-center justify-center mb-2">
-                <MapPin className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-2xl font-bold">10+</h3>
-              <p className="text-muted-foreground">Cities Covered</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      </div>
     </div>
   );
 };
