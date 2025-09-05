@@ -37,6 +37,7 @@ const menuItems = [
   { title: 'Documents', url: '/documents', icon: FileText },
   { title: 'My Products', url: '/my-products', icon: Package },
   { title: 'Hosting', url: '/my-markets', icon: Store },
+  { title: 'Browse Vendors', url: '/vendors', icon: Store },
 ];
 
 export function AppSidebar() {

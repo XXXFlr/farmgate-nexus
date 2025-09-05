@@ -23,6 +23,7 @@ import ProductDetails from "./pages/ProductDetails";
 import VendorDashboard from "./pages/VendorDashboard";
 import VendorProducts from "./pages/VendorProducts";
 import Search from "./pages/Search";
+import Vendors from "./pages/Vendors";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const AppRouter = () => {
         <Route path="/products/:productId" element={<ProductDetails />} />
         
         {/* Vendor Routes */}
+        <Route path="/vendors" element={<Vendors />} />
         <Route path="/vendor/dashboard" element={<VendorDashboard />} />
         <Route path="/vendor/products" element={<VendorProducts />} />
         
