@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, Plus, Search, Map, Menu } from 'lucide-react';
+import { Calendar, Clock, MapPin, Plus, Search, Map, Menu, ChevronRight } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { format } from 'date-fns';
@@ -22,17 +22,26 @@ interface Market {
   creator_id: string;
 }
 
+interface FarmUser {
+  id: string;
+  display_name: string | null;
+  photo_url: string | null;
+}
+
 const HomePage = () => {
   const navigate = useNavigate();
   const { user } = useFirebaseAuth();
   const { toggleSidebar } = useSidebarContext();
   const [markets, setMarkets] = useState<Market[]>([]);
   const [filteredMarkets, setFilteredMarkets] = useState<Market[]>([]);
+  const [farmUsers, setFarmUsers] = useState<FarmUser[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [farmsLoading, setFarmsLoading] = useState(true);
 
   useEffect(() => {
     fetchMarkets();
+    fetchFarmUsers();
   }, []);
 
   useEffect(() => {
@@ -57,6 +66,55 @@ const HomePage = () => {
       console.error('Error fetching markets:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFarmUsers = async () => {
+    try {
+      // First, get the "Farms" category ID
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('categories')
+        .select('category_id')
+        .eq('category_name', 'Farms')
+        .single();
+
+      if (categoryError || !categoryData) {
+        console.error('Error fetching Farms category:', categoryError);
+        setFarmsLoading(false);
+        return;
+      }
+
+      // Then get users who are categorized as farms
+      const { data: userCategoryData, error: userCategoryError } = await supabase
+        .from('user_categories')
+        .select(`
+          user_id,
+          users!inner(
+            id,
+            display_name,
+            photo_url
+          )
+        `)
+        .eq('category_id', categoryData.category_id);
+
+      if (userCategoryError) {
+        console.error('Error fetching farm users:', userCategoryError);
+        setFarmsLoading(false);
+        return;
+      }
+
+      // Transform the data to match our interface
+      const farmUsersList: FarmUser[] = userCategoryData?.map((item: any) => ({
+        id: item.users.id,
+        display_name: item.users.display_name,
+        photo_url: item.users.photo_url
+      })) || [];
+
+      setFarmUsers(farmUsersList);
+    } catch (error) {
+      console.error('Error fetching farm users:', error);
+    } finally {
+      setFarmsLoading(false);
     }
   };
 
@@ -236,27 +294,55 @@ const HomePage = () => {
 
         {/* Farms Section */}
         <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Farms</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {[1, 2].map((farm) => (
-              <div key={farm} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-                <div 
-                  className="h-48 bg-cover bg-center"
-                  style={{
-                    backgroundImage: `url('https://images.unsplash.com/photo-1544737151412-6c4cfda62e40?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80')`
-                  }}
-                />
-                <div className="p-4">
-                  <h4 className="font-bold text-gray-800 mb-2">Display Name</h4>
-                  <button className="text-amber-700 font-semibold hover:text-amber-800 transition-colors flex items-center gap-1">
-                    View Now
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
+          <div className="py-1 px-0">
+            {farmsLoading ? (
+              <div className="flex justify-center py-4">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
               </div>
-            ))}
+            ) : (
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                {farmUsers.map((farmUser, index) => (
+                  <div key={farmUser.id} className="px-4 py-2 first:pl-4">
+                    <div 
+                      className="w-50 h-25 bg-white rounded-xl shadow-sm p-2"
+                      style={{
+                        width: '200px',
+                        height: '100px',
+                        boxShadow: '0 1px 4px rgba(15, 17, 19, 0.26)'
+                      }}
+                    >
+                      <div className="flex flex-col h-full">
+                        <div className="flex-1 mb-4">
+                          <img
+                            src={farmUser.photo_url || 'https://clqwofdhiwlqnwqshzfk.supabase.co/storage/v1/object/public/market-photos/HawaiiFarm.png'}
+                            alt={farmUser.display_name || 'Farm'}
+                            className="w-full h-55 object-cover rounded-lg"
+                            style={{ height: '220px' }}
+                          />
+                        </div>
+                        <div className="pt-4">
+                          <h4 
+                            className="text-black text-xl font-normal mb-1"
+                            style={{ fontFamily: 'Outfit, sans-serif' }}
+                          >
+                            {farmUser.display_name || 'Display Name'}
+                          </h4>
+                          <div className="flex items-center justify-between">
+                            <span 
+                              className="text-gray-500 text-sm font-medium pl-1 pt-1"
+                              style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                            >
+                              View Now
+                            </span>
+                            <ChevronRight className="h-6 w-6 text-black" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
