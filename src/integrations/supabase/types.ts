@@ -18,14 +18,17 @@ export type Database = {
         Row: {
           category_id: string
           category_name: string
+          description: string | null
         }
         Insert: {
           category_id?: string
           category_name: string
+          description?: string | null
         }
         Update: {
           category_id?: string
           category_name?: string
+          description?: string | null
         }
         Relationships: []
       }
