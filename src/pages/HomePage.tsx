@@ -4,10 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, Plus, Search, User, Map } from 'lucide-react';
+import { Calendar, Clock, MapPin, Plus, Search, Map } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { format } from 'date-fns';
+import { AppLayout } from '@/components/AppLayout';
 
 interface Market {
   market_id: string;
@@ -73,33 +74,23 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-foreground">Farmers Markets</h1>
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate('/map')}>
-                <Map className="h-4 w-4 mr-2" />
-                Map
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/profile')}>
-                <User className="h-4 w-4 mr-2" />
-                Profile
-              </Button>
-              {user && (
-                <Button onClick={() => navigate('/add-event')}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Event
-                </Button>
-              )}
-            </div>
+    <AppLayout title="Farmers Markets">
+      <div className="container mx-auto px-4 py-6">
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => navigate('/map')}>
+              <Map className="h-4 w-4 mr-2" />
+              Map View
+            </Button>
           </div>
+          {user && (
+            <Button onClick={() => navigate('/add-event')}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Market
+            </Button>
+          )}
         </div>
-      </header>
-
-      <div className="container mx-auto px-4 py-8">
         {/* Search */}
         <div className="relative mb-8">
           <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -165,7 +156,7 @@ const HomePage = () => {
           </div>
         )}
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
