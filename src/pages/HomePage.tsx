@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, Plus, Search, Map } from 'lucide-react';
+import { Calendar, Clock, MapPin, Plus, Search, Map, Menu } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { format } from 'date-fns';
+import { useSidebarContext } from '@/components/AppLayout';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 interface Market {
   market_id: string;
@@ -24,6 +26,7 @@ interface Market {
 const HomePage = () => {
   const navigate = useNavigate();
   const { user } = useFirebaseAuth();
+  const { toggleSidebar } = useSidebarContext();
   const [markets, setMarkets] = useState<Market[]>([]);
   const [filteredMarkets, setFilteredMarkets] = useState<Market[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -73,7 +76,18 @@ const HomePage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-primary text-white px-4 py-3 flex items-center gap-3 md:hidden">
+        <SidebarTrigger asChild>
+          <Button variant="ghost" size="sm" onClick={toggleSidebar}>
+            <Menu className="h-5 w-5" />
+          </Button>
+        </SidebarTrigger>
+        <h1 className="text-xl font-semibold">Home</h1>
+      </header>
+
+      <div className="container mx-auto px-4 py-6">
         {/* Action Buttons */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -170,6 +184,7 @@ const HomePage = () => {
           </div>
         )}
       </div>
+    </div>
   );
 };
 
