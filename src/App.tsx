@@ -40,7 +40,7 @@ const AppRouter = () => {
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/" element={<HomePage />} />
-        <Route path="/market/:marketId" element={<MarketDetails />} />
+        <Route path="/markets/:marketId" element={<MarketDetails />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/account" element={<Account />} />
         <Route path="/add-event" element={<AddEvent />} />
