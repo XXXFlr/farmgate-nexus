@@ -1,482 +1,454 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, Plus, Search, Map, Menu, ChevronRight } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
-import { format } from 'date-fns';
-import { useSidebarContext } from '@/components/AppLayout';
+```typescript
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image, Switch, SafeAreaView } from 'react-native';
+import { DrawerContentComponentProps, DrawerContentScrollView, createDrawerNavigator } from '@react-navigation/drawer';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { NavigationContainer } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/Ionicons';
+import FontAwesomeIcon from 'react-native-vector-icons/FontAwesome';
+import { Inter_500Medium, Inter_600SemiBold, useFonts } from '@react-native-google-fonts/inter';
+import { LexendDeca_400Regular } from '@react-native-google-fonts/lexend-deca';
+import auth from '@react-native-firebase/auth';
 
-interface Market {
-  market_id: string;
-  market_name: string;
-  description: string;
-  date: string;
-  time: string;
-  latitude: number;
-  longitude: number;
-  status: string;
-  creator_id: string;
+// Sidebar Context (mimicking Lovable's SidebarProvider)
+interface SidebarContextType {
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
 }
 
-interface FarmUser {
-  id: string;
-  display_name: string | null;
-  photo_url: string | null;
-}
+const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
-const HomePage = () => {
-  const navigate = useNavigate();
-  const { user } = useFirebaseAuth();
-  const { toggleSidebar } = useSidebarContext();
-  const [markets, setMarkets] = useState<Market[]>([]);
-  const [filteredMarkets, setFilteredMarkets] = useState<Market[]>([]);
-  const [farmUsers, setFarmUsers] = useState<FarmUser[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [farmsLoading, setFarmsLoading] = useState(true);
+const useSidebar = () => {
+  const context = useContext(SidebarContext);
+  if (!context) {
+    throw new Error('useSidebar must be used within a SidebarProvider');
+  }
+  return context;
+};
 
-  useEffect(() => {
-    fetchMarkets();
-    fetchFarmUsers();
-  }, []);
-
-  useEffect(() => {
-    const filtered = markets.filter(market =>
-      market.market_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      market.description?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredMarkets(filtered);
-  }, [markets, searchQuery]);
-
-  const fetchMarkets = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('markets')
-        .select('*')
-        .eq('status', 'approved')
-        .order('date', { ascending: true });
-
-      if (error) throw error;
-      setMarkets(data || []);
-    } catch (error) {
-      console.error('Error fetching markets:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchFarmUsers = async () => {
-    try {
-      // First, get the "Farms" category ID
-      const { data: categoryData, error: categoryError } = await supabase
-        .from('categories')
-        .select('category_id')
-        .eq('category_name', 'Farms')
-        .single();
-
-      if (categoryError || !categoryData) {
-        console.error('Error fetching Farms category:', categoryError);
-        setFarmsLoading(false);
-        return;
-      }
-
-      // Then get users who are categorized as farms
-      const { data: userCategoryData, error: userCategoryError } = await supabase
-        .from('user_categories')
-        .select(`
-          user_id,
-          users!inner(
-            id,
-            display_name,
-            photo_url
-          )
-        `)
-        .eq('category_id', categoryData.category_id);
-
-      if (userCategoryError) {
-        console.error('Error fetching farm users:', userCategoryError);
-        setFarmsLoading(false);
-        return;
-      }
-
-      // Transform the data to match our interface
-      const farmUsersList: FarmUser[] = userCategoryData?.map((item: any) => ({
-        id: item.users.id,
-        display_name: item.users.display_name,
-        photo_url: item.users.photo_url
-      })) || [];
-
-      setFarmUsers(farmUsersList);
-    } catch (error) {
-      console.error('Error fetching farm users:', error);
-    } finally {
-      setFarmsLoading(false);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'Date TBD';
-    try {
-      return format(new Date(dateString), 'MMM dd, yyyy');
-    } catch {
-      return 'Date TBD';
-    }
-  };
-
-  const formatTime = (timeString: string) => {
-    if (!timeString) return 'Time TBD';
-    return timeString;
-  };
-
-  const categories = [
-    'All', 'Markets', 'Farms', 'Home Growers', 'Food Trucks', 'Drinks', 'Food'
-  ];
+// AppLayout Component (simplified to avoid conflicts)
+const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen" style={{ 
-      background: 'linear-gradient(135deg, #fdf6e3 0%, #f5f1e8 100%)'
-    }}>
-      {/* Botanical Pattern Background */}
-      <div 
-        className="fixed inset-0 opacity-5 pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23059669' fill-opacity='0.1'%3E%3Cpath d='M30 30c0-11.046-8.954-20-20-20s-20 8.954-20 20 8.954 20 20 20 20-8.954 20-20zm0 0c0 11.046 8.954 20 20 20s20-8.954 20-20-8.954-20-20-20-20 8.954-20 20z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          backgroundSize: '60px 60px'
-        }}
-      />
-
-      {/* Mobile App Bar with Profile Avatar and Search - Only visible on mobile */}
-      <div className="md:hidden">
-        <div 
-          className="relative h-24 bg-cover bg-center"
-          style={{
-            backgroundImage: `url('https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots/background.jpg')`
-          }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/40" />
-          <div className="relative flex items-center justify-between h-full px-4 pt-10">
-            {/* Profile Avatar with Flutter styling */}
-            <button 
-              onClick={toggleSidebar}
-              className="w-12 h-12 rounded-full border-2 border-accent flex-shrink-0 p-0.5 transition-all duration-200 hover:scale-105"
-              style={{
-                backgroundColor: 'rgba(57, 210, 192, 0.3)', // Color(0x4C39D2C0) converted to rgba
-              }}
-            >
-              <img
-                src={user?.photoURL || 'https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots//man.png'}
-                alt="Profile"
-                className="w-full h-full object-cover rounded-full"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots//man.png';
-                }}
-              />
-            </button>
-
-            {/* Search Bar */}
-            <div className="flex-1 mx-4">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-primary" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-white rounded-lg border-0 focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Desktop Header */}
-      <header className="hidden md:flex bg-teal-500 text-white px-4 py-3 items-center gap-3 sticky top-0 z-50">
-        <button 
-          onClick={toggleSidebar}
-          className="p-2 hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <Menu className="h-6 w-6" />
-        </button>
-        <div className="bg-teal-600 text-white px-3 py-1 rounded text-sm font-medium">
-          HomePage
-        </div>
-      </header>
-
-      <div className="px-4 py-4 pb-20 md:pb-4 relative z-10">
-
-        {/* Category Tabs */}
-        <div className="flex items-center overflow-x-auto mb-4 scrollbar-hide">
-          {categories.map((category, index) => (
-            <div 
-              key={category}
-              className={`flex items-center justify-center ${
-                index === 0 ? 'px-4' : 'pr-4'
-              }`}
-            >
-              <span className="text-gray-800 text-lg font-medium whitespace-nowrap">
-                {category}
-              </span>
-            </div>
-          ))}
-        </div>
-
-        {/* Hero Section */}
-        <div className="mb-6">
-          <div 
-            className="w-full rounded-xl p-3 pb-2"
-            style={{
-              backgroundColor: 'rgba(15, 17, 19, 0.26)',
-            }}
-          >
-            <div className="flex flex-col">
-              <div className="mb-4">
-                <div className="rounded-lg">
-                  <h2 
-                    className="text-white text-4xl font-medium leading-tight"
-                    style={{
-                      fontFamily: 'Outfit, sans-serif',
-                      textShadow: '3px 3px 3px rgba(0,0,0,0.3)'
-                    }}
-                  >
-                    Local harvest<br />Local people
-                  </h2>
-                </div>
-              </div>
-              
-              <div className="mb-2">
-                <p 
-                  className="text-white text-base font-normal"
-                  style={{ fontFamily: 'Outfit, sans-serif' }}
-                >
-                  Get to Know Nearby Farmers and Discover Their Unique Stories!
-                </p>
-              </div>
-              
-              <div className="flex items-center gap-1 mb-3">
-                <button 
-                  className="mr-1"
-                  onClick={() => navigate('/news')}
-                >
-                  <img 
-                    src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MXx8dXNlcnxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=900&q=60"
-                    alt="User"
-                    className="w-11 h-11 rounded-full object-cover"
-                  />
-                </button>
-                <button 
-                  className="mr-1"
-                  onClick={() => navigate('/news')}
-                >
-                  <img 
-                    src="https://images.unsplash.com/photo-1533689476487-034f57831a58?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTA4fHx1c2VyfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=900&q=60"
-                    alt="User"
-                    className="w-11 h-11 rounded-full object-cover"
-                  />
-                </button>
-                <button 
-                  className="mr-1"
-                  onClick={() => navigate('/news')}
-                >
-                  <img 
-                    src="https://images.unsplash.com/photo-1543610892-0b1f7e6d8ac1?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTE1fHx1c2VyfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=900&q=60"
-                    alt="User"
-                    className="w-11 h-11 rounded-full object-cover"
-                  />
-                </button>
-              </div>
-              
-              <button
-                onClick={() => navigate('/news')}
-                className="w-full h-11 bg-primary text-white text-base font-normal rounded-xl shadow-sm border border-transparent"
-                style={{ fontFamily: 'Outfit, sans-serif' }}
-              >
-                Explore Now
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Vendors Section */}
-        <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Vendors</h3>
-          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide">
-            {[1, 2, 3, 4].map((vendor) => (
-              <div key={vendor} className="flex flex-col items-center min-w-[100px]">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 via-blue-400 to-green-500 p-1 mb-3 shadow-lg">
-                  <div className="w-full h-full rounded-full bg-green-100 flex items-center justify-center relative overflow-hidden">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full"></div>
-                  </div>
-                </div>
-                <span className="text-sm font-semibold text-gray-800">[Display Name]</span>
-                <span className="text-xs text-gray-500">type</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Farms Section */}
-        <div className="py-1 px-0 mb-2">
-          {farmsLoading ? (
-            <div className="flex justify-center py-4">
-              <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          ) : (
-            <div className="flex overflow-x-auto scrollbar-hide">
-              {farmUsers.map((farmUser, index) => (
-                <div key={farmUser.id} className="px-4 py-2 first:pl-4 last:pr-4">
-                  <div 
-                    className="bg-white rounded-xl animate-fade-in"
-                    style={{
-                      width: '200px',
-                      height: '100px',
-                      boxShadow: '0 1px 4px rgba(15, 17, 19, 0.26)'
-                    }}
-                  >
-                    {/* Exact Flutter Column structure with 8px padding */}
-                    <div className="p-2 h-full">
-                      <div className="flex flex-col h-full items-start">
-                        {/* Hero Image with ClipRRect borderRadius 8px */}
-                        <div className="w-full mb-0">
-                          <img
-                            src={farmUser.photo_url || 'https://clqwofdhiwlqnwqshzfk.supabase.co/storage/v1/object/public/market-photos/HawaiiFarm.png'}
-                            alt={farmUser.display_name || 'Farm'}
-                            className="w-full"
-                            style={{ 
-                              height: '220px',
-                              objectFit: 'contain',
-                              objectPosition: 'top',
-                              borderRadius: '8px'
-                            }}
-                          />
-                        </div>
-                        
-                        {/* Display Name with exact 16px top padding */}
-                        <div style={{ paddingTop: '16px' }}>
-                          <h4 
-                            style={{ 
-                              fontFamily: 'Outfit, sans-serif',
-                              color: '#0F1113',
-                              fontSize: '20px',
-                              fontWeight: 'normal',
-                              letterSpacing: '0.0px',
-                              margin: 0
-                            }}
-                          >
-                            {farmUser.display_name || 'Display Name'}
-                          </h4>
-                        </div>
-                        
-                        {/* Row with exact spacing and alignment */}
-                        <div className="flex items-center justify-between w-full">
-                          <div style={{ paddingLeft: '4px', paddingTop: '4px' }}>
-                            <span 
-                              style={{ 
-                                fontFamily: 'Plus Jakarta Sans, sans-serif',
-                                color: '#57636C',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                letterSpacing: '0.0px'
-                              }}
-                            >
-                              View Now
-                            </span>
-                          </div>
-                          <ChevronRight 
-                            style={{ 
-                              width: '24px', 
-                              height: '24px',
-                              color: 'black'
-                            }} 
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Featured Markets */}
-        {filteredMarkets.length > 0 && (
-          <div className="mb-6">
-            <div className="grid gap-4">
-              {filteredMarkets.slice(0, 2).map((market) => (
-                <div 
-                  key={market.market_id}
-                  className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => navigate(`/market/${market.market_id}`)}
-                >
-                  <div 
-                    className="h-48 bg-cover bg-center"
-                    style={{
-                      backgroundImage: `url('https://images.unsplash.com/photo-1488459716781-31db52582fe9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80')`
-                    }}
-                  />
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                      <Calendar className="h-4 w-4" />
-                      <span>{formatDate(market.date)} • {formatTime(market.time)}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
-                      <MapPin className="h-4 w-4 text-red-500" />
-                      <span>Location</span>
-                    </div>
-                    <p className="text-gray-700 font-semibold mb-2">@[Display Name]</p>
-                    <p className="text-gray-600 mb-3">{market.description || 'Market Description'}</p>
-                    <div className="flex items-center gap-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1">
-                        <div className="w-4 h-4 bg-amber-600 rounded"></div>
-                        <span>35</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <div className="w-4 h-4 bg-gray-400 rounded"></div>
-                        <span>897</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Produce Section */}
-        <div className="mb-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Produce</h3>
-          <div className="grid gap-4">
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-              <div className="flex gap-4">
-                <div 
-                  className="w-20 h-20 rounded-xl bg-cover bg-center flex-shrink-0"
-                  style={{
-                    backgroundImage: `url('https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80')`
-                  }}
-                />
-                <div className="flex-1">
-                  <h4 className="font-bold text-gray-800 text-lg mb-1">Apple Bananas</h4>
-                  <p className="text-sm text-gray-600 mb-1">@[Display Name]</p>
-                  <div className="flex items-center gap-1 text-sm text-gray-600 mb-2">
-                    <MapPin className="h-3 w-3 text-red-500" />
-                    <span>Address</span>
-                  </div>
-                  <p className="text-2xl font-bold text-gray-800">$0</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <SidebarContext.Provider value={{ isSidebarOpen, toggleSidebar: () => setIsSidebarOpen(!isSidebarOpen) }}>
+      <View style={{ flex: 1 }}>
+        {children}
+      </View>
+    </SidebarContext.Provider>
   );
 };
 
-export default HomePage;
+// Drawer Content Component (converted from MainDrawerWidget)
+const DrawerContent: React.FC<DrawerContentComponentProps> = ({ navigation }) => {
+  const [markLocation, setMarkLocation] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [userData, setUserData] = useState({
+    photoUrl: 'https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots//man.png',
+    name: 'Display Name',
+    username: '-',
+    followers: 123,
+    following: 123,
+  });
+
+  useEffect(() => {
+    const user = auth().currentUser;
+    if (user) {
+      setUserData({
+        photoUrl: user.photoURL || userData.photoUrl,
+        name: user.displayName || 'Display Name',
+        username: user.displayName || '-',
+        followers: 123, // Replace with Supabase query if available
+        following: 123, // Replace with Supabase query if available
+      });
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await auth().signOut();
+      navigation.reset({ index: 0, routes: [{ name: 'AuthPageTRASH' }] });
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  const MenuItem: React.FC<{ icon: string; text: string; route?: string; onPress?: () => void; iconType?: 'Ionicons' | 'FontAwesome' }> = ({ icon, text, route, onPress, iconType = 'Ionicons' }) => (
+    <TouchableOpacity
+      style={styles.menuItem}
+      onPress={onPress || (route ? () => navigation.navigate(route) : undefined)}
+    >
+      {iconType === 'FontAwesome' ? (
+        <FontAwesomeIcon name={icon} size={24} color="#007AFF" />
+      ) : (
+        <Icon name={icon} size={28} color="#007AFF" />
+      )}
+      <Text style={styles.menuText}>{text}</Text>
+    </TouchableOpacity>
+  );
+
+  return (
+    <DrawerContentScrollView style={styles.drawerContainer}>
+      <View style={styles.drawerHeader}>
+        <TouchableOpacity
+          style={styles.qrButton}
+          onPress={() => navigation.navigate('QRCodeShareProfile')}
+        >
+          <Icon name="qr-code-outline" size={33} color="#000" />
+        </TouchableOpacity>
+        <View style={styles.profileContainer}>
+          <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+            <Image
+              source={{ uri: userData.photoUrl }}
+              style={styles.profileImage}
+            />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.displayName}>{userData.name}</Text>
+        <Text style={styles.username}>@{userData.username}</Text>
+        <View style={styles.followContainer}>
+          <View style={styles.followItem}>
+            <Text style={styles.followCount}>{userData.followers}</Text>
+            <Text style={styles.followLabel}>Followers</Text>
+          </View>
+          <View style={styles.followItem}>
+            <Text style={styles.followCount}>{userData.following}</Text>
+            <Text style={styles.followLabel}>Following</Text>
+          </View>
+        </View>
+      </View>
+      <View style={styles.menuContainer}>
+        <MenuItem icon="location-outline" text="Account" route="AccountSetting" />
+        <MenuItem icon="person-outline" text="Edit Profile" route="EditProfile" />
+        <MenuItem icon="document-text-outline" text="Documents" route="Documents" />
+        <MenuItem icon="box-open" text="My Products" route="MyProducts" iconType="FontAwesome" />
+        <MenuItem icon="storefront-outline" text="Hosting" route="MyMarkets" />
+        <MenuItem
+          icon="checkmark-circle-outline"
+          text="Verification"
+          onPress={() => {
+            alert('Coming soon');
+          }}
+        />
+        <View style={styles.switchContainer}>
+          <View style={styles.switchLabel}>
+            <Icon name="location" size={31} color="#FD333F" />
+            <Text style={styles.menuText}>Mark Location</Text>
+          </View>
+          <Switch
+            value={markLocation}
+            onValueChange={setMarkLocation}
+            trackColor={{ false: '#767577', true: '#34C759' }}
+            thumbColor={markLocation ? '#FFFFFF' : '#F4F4F4'}
+          />
+        </View>
+      </View>
+      <View style={styles.footerContainer}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
+        <View style={styles.themeToggle}>
+          <TouchableOpacity
+            style={[styles.themeOption, !isDarkMode ? styles.themeOptionActive : null]}
+            onPress={() => setIsDarkMode(false)}
+          >
+            <Icon name="sunny" size={16} color="#000" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.themeOption, isDarkMode ? styles.themeOptionActive : null]}
+            onPress={() => setIsDarkMode(true)}
+          >
+            <Icon name="moon" size={16} color="#FFF" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </DrawerContentScrollView>
+  );
+};
+
+// Home Page Component (converted from HomePageModel)
+const HomePage: React.FC = () => {
+  const [searchText, setSearchText] = useState('');
+  const { toggleSidebar } = useSidebar();
+
+  useFonts({
+    Inter_500Medium,
+    Inter_600SemiBold,
+    LexendDeca_400Regular,
+  });
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.menuButton} onPress={toggleSidebar}>
+          <Icon name="menu" size={30} color="#FFF" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Home</Text>
+      </View>
+      <View style={styles.content}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search products..."
+          value={searchText}
+          onChangeText={setSearchText}
+          onSubmitEditing={() => alert(`Searching for: ${searchText}`)}
+        />
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.welcomeText}>Welcome to the Home Page</Text>
+          {/* Add more content here, e.g., product list from Supabase */}
+        </ScrollView>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+// Bottom Tab Navigator Component (converted from BottomMenuWidget)
+const BottomTab: React.FC = () => (
+  <BottomTabNavigator.Navigator
+    screenOptions={{
+      tabBarActiveTintColor: '#FF9B41',
+      tabBarInactiveTintColor: '#FFFFFF',
+      tabBarStyle: { backgroundColor: '#007AFF', height: 64 },
+    }}
+    initialRouteName="Home"
+  >
+    <BottomTabNavigator.Screen
+      name="Home"
+      component={HomePage}
+      options={{
+        tabBarIcon: ({ color, size }) => <Icon name="home-outline" size={31} color={color} />,
+        tabBarLabel: 'Home',
+      }}
+    />
+    <BottomTabNavigator.Screen
+      name="Map"
+      component={PlaceholderScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => <Icon name="map-outline" size={31} color={color} />,
+        tabBarLabel: 'Explore',
+      }}
+    />
+    <BottomTabNavigator.Screen
+      name="ProductDetail"
+      component={PlaceholderScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => <Icon name="add-circle-outline" size={31} color={color} />,
+        tabBarLabel: 'Add',
+      }}
+    />
+    <BottomTabNavigator.Screen
+      name="ListProducts"
+      component={PlaceholderScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => <Icon name="list-outline" size={31} color={color} />,
+        tabBarLabel: 'List',
+      }}
+    />
+    <BottomTabNavigator.Screen
+      name="Chats"
+      component={PlaceholderScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => <FontAwesomeIcon name="comment" size={29} color={color} />,
+        tabBarLabel: 'Chat',
+      }}
+    />
+  </BottomTabNavigator.Navigator>
+);
+
+// Placeholder Screen for Navigation
+const PlaceholderScreen: React.FC = () => (
+  <View style={styles.container}>
+    <Text style={styles.welcomeText}>Placeholder Screen</Text>
+  </View>
+);
+
+// Main App Component
+const Drawer = createDrawerNavigator();
+const BottomTabNavigator = createBottomTabNavigator();
+
+const App: React.FC = () => (
+  <AppLayout>
+    <NavigationContainer>
+      <Drawer.Navigator
+        drawerContent={(props) => <DrawerContent {...props} />}
+        screenOptions={{ headerShown: false }}
+      >
+        <Drawer.Screen name="Tabs" component={BottomTab} />
+        <Drawer.Screen name="QRCodeShareProfile" component={PlaceholderScreen} />
+        <Drawer.Screen name="Profile" component={PlaceholderScreen} />
+        <Drawer.Screen name="AccountSetting" component={PlaceholderScreen} />
+        <Drawer.Screen name="EditProfile" component={PlaceholderScreen} />
+        <Drawer.Screen name="Documents" component={PlaceholderScreen} />
+        <Drawer.Screen name="MyProducts" component={PlaceholderScreen} />
+        <Drawer.Screen name="MyMarkets" component={PlaceholderScreen} />
+        <Drawer.Screen name="AuthPageTRASH" component={PlaceholderScreen} />
+      </Drawer.Navigator>
+    </NavigationContainer>
+  </AppLayout>
+);
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F4F4F4',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#007AFF',
+  },
+  menuButton: {
+    padding: 8,
+  },
+  headerTitle: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 24,
+    color: '#FFF',
+    marginLeft: 16,
+  },
+  content: {
+    flex: 1,
+    padding: 16,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchInput: {
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    marginBottom: 16,
+    fontFamily: 'Inter_500Medium',
+    fontSize: 16,
+  },
+  welcomeText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 20,
+    textAlign: 'center',
+  },
+  drawerContainer: {
+    flex: 1,
+    backgroundColor: '#FFF',
+  },
+  drawerHeader: {
+    padding: 16,
+  },
+  qrButton: {
+    width: 35.2,
+    height: 40,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  profileContainer: {
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#34C759',
+  },
+  displayName: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 28,
+    marginLeft: 16,
+  },
+  username: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 21,
+    marginLeft: 16,
+    marginTop: 6,
+  },
+  followContainer: {
+    flexDirection: 'row',
+    marginLeft: 16,
+    marginBottom: 8,
+  },
+  followItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 20,
+  },
+  followCount: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 16,
+  },
+  followLabel: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  menuContainer: {
+    paddingHorizontal: 16,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 26,
+  },
+  menuText: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 20,
+    marginLeft: 16,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  switchLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  footerContainer: {
+    padding: 16,
+    alignItems: 'center',
+  },
+  logoutButton: {
+    backgroundColor: '#007AFF',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  logoutText: {
+    fontFamily: 'LexendDeca_400Regular',
+    fontSize: 14,
+    color: '#FFF',
+  },
+  themeToggle: {
+    flexDirection: 'row',
+    width: 90,
+    height: 36,
+    backgroundColor: '#F4F4F4',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    padding: 4,
+    alignSelf: 'flex-start',
+  },
+  themeOption: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  themeOptionActive: {
+    backgroundColor: '#767577',
+  },
+});
+
+export default App;
+```
