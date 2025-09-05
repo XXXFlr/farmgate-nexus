@@ -11,9 +11,15 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   { icon: Home, label: 'Home', path: '/' },
-  { icon: Map, label: 'Explore', path: '/map' },
-  { icon: Plus, label: 'Add', path: '/add-event' },
-  { icon: List, label: 'List', path: '/my-products' },
+  { icon: Map, label: 'Map', path: '/map' },
+  { icon: () => (
+    <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+      <path d="M3 17h2l.5-2h13l.5 2h2l-2-7H5l-2 7zm3.5-5h11l-.5 2h-10l-.5-2z"/>
+      <path d="M6 18.5A1.5 1.5 0 1 0 7.5 20 1.5 1.5 0 0 0 6 18.5zm10 0A1.5 1.5 0 1 0 17.5 20 1.5 1.5 0 0 0 16 18.5z"/>
+      <path d="M8 14h8v-2H8v2zm0-3h8V9H8v2z"/>
+    </svg>
+  ), label: 'Vendors', path: '/vendors' },
+  { icon: List, label: 'Markets', path: '/markets' },
   { icon: MessageCircle, label: 'Chat', path: '/chat' },
 ];
 
