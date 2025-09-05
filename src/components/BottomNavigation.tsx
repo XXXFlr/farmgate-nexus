@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, Store, User } from 'lucide-react';
+import { Home, Search, Package, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface NavigationItem {
@@ -12,7 +12,7 @@ interface NavigationItem {
 const navigationItems: NavigationItem[] = [
   { icon: Home, label: 'Home', path: '/' },
   { icon: Search, label: 'Search', path: '/search' },
-  { icon: Store, label: 'Markets', path: '/markets' },
+  { icon: Package, label: 'Products', path: '/my-products' },
   { icon: User, label: 'Profile', path: '/profile' },
 ];
 
