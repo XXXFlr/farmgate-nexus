@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -22,19 +23,35 @@ const Auth = () => {
     }
   }, [user, navigate]);
 
+  // Sync user to Supabase after successful authentication
+  const syncUserToSupabase = async (firebaseUser: any, displayName?: string, country?: string) => {
+    try {
+      await supabase.rpc('sync_firebase_user', {
+        firebase_uid: firebaseUser.uid,
+        user_email: firebaseUser.email || '',
+        user_display_name: displayName || firebaseUser.displayName || 'Unknown',
+        user_country: country || 'United States'
+      });
+    } catch (error) {
+      console.error('Error syncing user to Supabase:', error);
+    }
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
       if (isLogin) {
-        await signInWithEmail(email, password);
+        const result = await signInWithEmail(email, password);
+        await syncUserToSupabase(result.user);
         toast({
           title: "Welcome back!",
           description: "You have been logged in successfully.",
         });
       } else {
-        await signUpWithEmail(email, password);
+        const result = await signUpWithEmail(email, password);
+        await syncUserToSupabase(result.user, email, 'United States');
         toast({
           title: "Account created!",
           description: "You have been successfully registered.",
@@ -55,7 +72,8 @@ const Auth = () => {
   const handleGoogleAuth = async () => {
     setLoading(true);
     try {
-      await signInWithGoogle();
+      const result = await signInWithGoogle();
+      await syncUserToSupabase(result.user);
       toast({
         title: "Welcome!",
         description: "You have been logged in with Google.",

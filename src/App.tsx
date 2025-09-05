@@ -4,11 +4,16 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { FirebaseAuthProvider, useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
-import Home from "./pages/Home";
+import HomePage from "./pages/HomePage";
 import Auth from "./pages/Auth";
 import Map from "./pages/Map";
 import Markets from "./pages/Markets";
 import CreateMarket from "./pages/CreateMarket";
+import MarketDetails from "./pages/MarketDetails";
+import Profile from "./pages/Profile";
+import Account from "./pages/Account";
+import AddEvent from "./pages/AddEvent";
+import EditEvent from "./pages/EditEvent";
 import Chat from "./pages/Chat";
 import NotFound from "./pages/NotFound";
 
@@ -37,47 +42,16 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route 
-              path="/" 
-              element={
-                <ProtectedRoute>
-                  <Home />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/map" 
-              element={
-                <ProtectedRoute>
-                  <Map />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/markets" 
-              element={
-                <ProtectedRoute>
-                  <Markets />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/markets/create" 
-              element={
-                <ProtectedRoute>
-                  <CreateMarket />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/chat" 
-              element={
-                <ProtectedRoute>
-                  <Chat />
-                </ProtectedRoute>
-              } 
-            />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/market/:marketId" element={<MarketDetails />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/account" element={<Account />} />
+            <Route path="/add-event" element={<AddEvent />} />
+            <Route path="/edit-event/:marketId" element={<EditEvent />} />
+            <Route path="/map" element={<Map />} />
+            <Route path="/markets" element={<Markets />} />
+            <Route path="/markets/create" element={<CreateMarket />} />
+            <Route path="/chat" element={<Chat />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

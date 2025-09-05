@@ -194,32 +194,41 @@ export type Database = {
         Row: {
           created_at: string
           creator_id: string
+          date: string | null
           description: string | null
           latitude: number | null
           longitude: number | null
           market_id: string
           market_name: string
           required_documents: string | null
+          status: string | null
+          time: string | null
         }
         Insert: {
           created_at?: string
           creator_id: string
+          date?: string | null
           description?: string | null
           latitude?: number | null
           longitude?: number | null
           market_id?: string
           market_name: string
           required_documents?: string | null
+          status?: string | null
+          time?: string | null
         }
         Update: {
           created_at?: string
           creator_id?: string
+          date?: string | null
           description?: string | null
           latitude?: number | null
           longitude?: number | null
           market_id?: string
           market_name?: string
           required_documents?: string | null
+          status?: string | null
+          time?: string | null
         }
         Relationships: [
           {
@@ -478,6 +487,27 @@ export type Database = {
           },
         ]
       }
+      user_markets: {
+        Row: {
+          created_at: string
+          id: string
+          market_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          market_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          market_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           contact_number: string | null
@@ -495,6 +525,7 @@ export type Database = {
           permanent_latitude: number | null
           permanent_longitude: number | null
           photo_url: string | null
+          role: string | null
           subscription_plan: string
           toggle_latitude: number | null
           toggle_longitude: number | null
@@ -517,6 +548,7 @@ export type Database = {
           permanent_latitude?: number | null
           permanent_longitude?: number | null
           photo_url?: string | null
+          role?: string | null
           subscription_plan?: string
           toggle_latitude?: number | null
           toggle_longitude?: number | null
@@ -539,6 +571,7 @@ export type Database = {
           permanent_latitude?: number | null
           permanent_longitude?: number | null
           photo_url?: string | null
+          role?: string | null
           subscription_plan?: string
           toggle_latitude?: number | null
           toggle_longitude?: number | null
@@ -560,7 +593,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      sync_firebase_user: {
+        Args: {
+          firebase_uid: string
+          user_country?: string
+          user_display_name?: string
+          user_email: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
