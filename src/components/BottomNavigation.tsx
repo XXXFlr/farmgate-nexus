@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Search, Package, User } from 'lucide-react';
+import { Home, Map, Plus, List, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface NavigationItem {
@@ -11,9 +11,10 @@ interface NavigationItem {
 
 const navigationItems: NavigationItem[] = [
   { icon: Home, label: 'Home', path: '/' },
-  { icon: Search, label: 'Search', path: '/search' },
-  { icon: Package, label: 'Products', path: '/my-products' },
-  { icon: User, label: 'Profile', path: '/profile' },
+  { icon: Map, label: 'Explore', path: '/map' },
+  { icon: Plus, label: 'Add', path: '/add-event' },
+  { icon: List, label: 'List', path: '/my-products' },
+  { icon: MessageCircle, label: 'Chat', path: '/chat' },
 ];
 
 export function BottomNavigation() {
@@ -28,8 +29,8 @@ export function BottomNavigation() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 md:hidden">
-      <div className="flex items-center justify-around py-2">
+    <nav className="fixed bottom-0 left-0 right-0 bg-primary border-t border-border z-50 md:hidden h-16">
+      <div className="flex items-center justify-around h-full py-2">
         {navigationItems.map((item) => {
           const active = isActive(item.path);
           return (
@@ -38,13 +39,13 @@ export function BottomNavigation() {
               variant="ghost"
               size="sm"
               onClick={() => navigate(item.path)}
-              className={`flex flex-col items-center gap-1 h-auto py-2 px-3 ${
+              className={`flex flex-col items-center gap-1 h-auto py-2 px-3 hover:bg-transparent ${
                 active 
-                  ? 'text-primary bg-primary/10' 
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'text-orange-400' 
+                  : 'text-white hover:text-orange-200'
               }`}
             >
-              <item.icon className="h-5 w-5" />
+              <item.icon className="h-7 w-7" />
               <span className="text-xs font-medium">{item.label}</span>
             </Button>
           );
