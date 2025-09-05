@@ -55,32 +55,38 @@ const Markets = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      {/* Mobile Header */}
       <header className="border-b border-border bg-card sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')}>
-              <ArrowLeft className="h-4 w-4" />
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="p-2">
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <h1 className="text-xl md:text-2xl font-bold text-foreground">Markets</h1>
+            </div>
+            <Button 
+              onClick={() => navigate('/markets/create')}
+              size="sm"
+              className="text-sm px-3 py-2"
+            >
+              <Plus className="h-4 w-4 md:mr-2" />
+              <span className="hidden sm:inline">Create Market</span>
             </Button>
-            <h1 className="text-2xl font-bold text-foreground">Markets</h1>
           </div>
-          <Button onClick={() => navigate('/markets/create')}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Market
-          </Button>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="px-4 py-4 md:py-8 max-w-7xl mx-auto">
         {/* Search */}
-        <div className="mb-8">
-          <div className="relative max-w-md">
+        <div className="mb-6">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search markets..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-12 text-base"
             />
           </div>
         </div>
@@ -113,7 +119,7 @@ const Markets = () => {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filteredMarkets.map((market) => (
               <Card 
                 key={market.market_id} 

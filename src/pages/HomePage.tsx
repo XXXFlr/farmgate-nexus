@@ -244,7 +244,7 @@ const HomePage = () => {
         </div>
       </header>
 
-      <div className="px-4 py-4 pb-20 md:pb-4 relative z-10">
+      <div className="px-4 py-4 pb-20 md:pb-4 relative z-10 max-w-7xl mx-auto">
 
         {/* Category Tabs */}
         <div className="flex items-center overflow-x-auto mb-4 scrollbar-hide">
@@ -459,20 +459,20 @@ const HomePage = () => {
               <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : products.length > 0 ? (
-            <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-hide">
+            <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-hide">
               {products.map((product) => (
                 <Card 
                   key={product.product_id}
                   className="cursor-pointer hover:shadow-md transition-shadow border-border"
                   onClick={() => navigate(`/product/${product.product_id}`)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex gap-4">
+                  <CardContent className="p-3 md:p-4">
+                    <div className="flex gap-3">
                       <div className="flex-shrink-0">
                         <img
                           src={product.photo_url || 'https://images.unsplash.com/photo-1590736969955-71cc94901144?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80'}
                           alt={product.product_name}
-                          className="w-20 h-20 object-cover rounded-lg bg-muted"
+                          className="w-16 h-16 md:w-20 md:h-20 object-cover rounded-lg bg-muted"
                           onError={(e) => {
                             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1590736969955-71cc94901144?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80';
                           }}
@@ -490,11 +490,11 @@ const HomePage = () => {
                                 {product.description}
                               </p>
                             )}
-                            <div className="flex items-center gap-2 mt-2">
+                            <div className="flex items-center gap-2 mt-2 flex-wrap">
                               {product.location && (
                                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                                   <MapPin className="h-3 w-3" />
-                                  <span>{product.location}</span>
+                                  <span className="truncate max-w-20">{product.location}</span>
                                 </div>
                               )}
                               {product.stock && (
@@ -505,12 +505,12 @@ const HomePage = () => {
                             </div>
                           </div>
                           
-                          <div className="text-right flex-shrink-0 ml-4">
+                          <div className="text-right flex-shrink-0 ml-3">
                             {product.price && (
-                              <div className="font-bold text-primary">
+                              <div className="font-bold text-primary text-sm md:text-base">
                                 ${product.price.toFixed(2)}
                                 {product.unit && (
-                                  <span className="text-sm text-muted-foreground">
+                                  <span className="text-xs md:text-sm text-muted-foreground">
                                     /{product.unit}
                                   </span>
                                 )}
