@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { FirebaseAuthProvider, useFirebaseAuth } from "@/contexts/FirebaseAuthContext";
+import { AppLayout } from "@/components/AppLayout";
 import HomePage from "./pages/HomePage";
 import Auth from "./pages/Auth";
 import Map from "./pages/Map";
@@ -33,6 +34,25 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const AppRouter = () => {
+  return (
+    <Routes>
+      <Route path="/auth" element={<Auth />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/market/:marketId" element={<MarketDetails />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route path="/account" element={<Account />} />
+      <Route path="/add-event" element={<AddEvent />} />
+      <Route path="/edit-event/:marketId" element={<EditEvent />} />
+      <Route path="/map" element={<Map />} />
+      <Route path="/markets" element={<Markets />} />
+      <Route path="/markets/create" element={<CreateMarket />} />
+      <Route path="/chat" element={<Chat />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <FirebaseAuthProvider>
@@ -40,20 +60,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<HomePage />} />
-            <Route path="/market/:marketId" element={<MarketDetails />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/add-event" element={<AddEvent />} />
-            <Route path="/edit-event/:marketId" element={<EditEvent />} />
-            <Route path="/map" element={<Map />} />
-            <Route path="/markets" element={<Markets />} />
-            <Route path="/markets/create" element={<CreateMarket />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AppRouter />
         </BrowserRouter>
       </TooltipProvider>
     </FirebaseAuthProvider>
