@@ -10,7 +10,9 @@ import {
   LogOut,
   QrCode,
   Sun,
-  Moon
+  Moon,
+  FileText,
+  Package
 } from 'lucide-react';
 import {
   Sidebar,
@@ -30,10 +32,11 @@ import { useFirebaseAuth } from '@/contexts/FirebaseAuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 const menuItems = [
-  { title: 'Account', url: '/account', icon: User },
-  { title: 'Edit Profile', url: '/profile', icon: Edit3 },
-  { title: 'My Markets', url: '/my-markets', icon: Store },
-  { title: 'Saved Markets', url: '/saved-markets', icon: Calendar },
+  { title: 'Account', url: '/account', icon: MapPin },
+  { title: 'Edit Profile', url: '/profile', icon: User },
+  { title: 'Documents', url: '/documents', icon: FileText },
+  { title: 'My Products', url: '/my-products', icon: Package },
+  { title: 'Hosting', url: '/my-markets', icon: Store },
 ];
 
 export function AppSidebar() {
@@ -78,14 +81,14 @@ export function AppSidebar() {
       <SidebarContent className="flex flex-col justify-between h-full">
         <div className="flex-1">
           {/* User Profile Section */}
-          <div className="p-4 border-b border-border">
+          <div className="p-4 bg-sidebar-background border-b border-sidebar-border">
             {!collapsed && (
               <div className="flex justify-start mb-4">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => navigate('/qr-share')}
-                  className="w-10 h-10 p-0"
+                  className="w-9 h-10 p-0 bg-background border-border"
                 >
                   <QrCode className="h-5 w-5" />
                 </Button>
@@ -94,26 +97,29 @@ export function AppSidebar() {
             
             <div className={`flex ${collapsed ? 'justify-center' : 'flex-col items-center'} mb-4`}>
               <Avatar 
-                className={`${collapsed ? 'w-8 h-8' : 'w-20 h-20'} border-2 border-primary cursor-pointer`}
+                className={`${collapsed ? 'w-8 h-8' : 'w-24 h-24'} border-2 border-emerald-500 cursor-pointer bg-emerald-50`}
                 onClick={() => navigate('/profile')}
               >
-                <AvatarImage src={user?.photoURL || undefined} />
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                <AvatarImage 
+                  src={user?.photoURL || 'https://eeqmvfbsupumublzxlil.supabase.co/storage/v1/object/public/roots//man.png'} 
+                  className="object-cover"
+                />
+                <AvatarFallback className="bg-emerald-100 text-emerald-700 font-semibold">
                   {user?.displayName?.charAt(0) || user?.email?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               
               {!collapsed && (
-                <div className="text-center mt-3">
-                  <h3 className="text-lg font-semibold text-foreground">
+                <div className="w-full mt-3">
+                  <h3 className="text-left text-2xl font-medium text-sidebar-foreground ml-0">
                     {user?.displayName || 'Display Name'}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-left text-lg text-sidebar-foreground/70 ml-0 mt-1">
                     @{user?.email?.split('@')[0] || 'username'}
                   </p>
-                  <div className="flex justify-center gap-4 mt-2 text-sm">
-                    <span><strong>123</strong> Followers</span>
-                    <span><strong>123</strong> Following</span>
+                  <div className="flex justify-start gap-5 mt-2 text-sm text-sidebar-foreground/80 ml-0">
+                    <span><strong className="font-semibold">123</strong> <span className="font-medium">Followers</span></span>
+                    <span><strong className="font-semibold">123</strong> <span className="font-medium">Following</span></span>
                   </div>
                 </div>
               )}
@@ -121,46 +127,48 @@ export function AppSidebar() {
           </div>
 
           {/* Menu Items */}
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {menuItems.map((item) => (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild>
-                      <NavLink
-                        to={item.url}
-                        className={({ isActive }) =>
-                          `flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${
-                            isActive
-                              ? 'bg-primary text-primary-foreground'
-                              : 'hover:bg-muted text-foreground'
-                          }`
-                        }
-                      >
-                        <item.icon className="h-5 w-5" />
-                        {!collapsed && <span className="font-medium">{item.title}</span>}
-                      </NavLink>
+          <div className="px-4">
+            <SidebarGroup>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {menuItems.map((item) => (
+                    <SidebarMenuItem key={item.title} className="mt-6 first:mt-0">
+                      <SidebarMenuButton asChild className="p-0">
+                        <NavLink
+                          to={item.url}
+                          className={({ isActive }) =>
+                            `flex items-center gap-3 px-0 py-2 transition-colors ${
+                              isActive
+                                ? 'text-sidebar-primary'
+                                : 'text-sidebar-foreground hover:text-sidebar-primary'
+                            }`
+                          }
+                        >
+                          <item.icon className="h-7 w-7 text-sidebar-primary" />
+                          {!collapsed && <span className="text-xl font-semibold">{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                  
+                  <SidebarMenuItem className="mt-6">
+                    <SidebarMenuButton onClick={handleVerification} className="p-0">
+                      <CheckCircle className="h-7 w-7 text-sidebar-primary" />
+                      {!collapsed && <span className="text-xl font-semibold ml-3">Verification</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
-                ))}
-                
-                <SidebarMenuItem>
-                  <SidebarMenuButton onClick={handleVerification}>
-                    <CheckCircle className="h-5 w-5 text-primary" />
-                    {!collapsed && <span className="font-medium">Verification</span>}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
 
           {/* Location Toggle */}
           {!collapsed && (
             <div className="px-4 py-2 mt-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <MapPin className="h-5 w-5 text-destructive" />
-                  <span className="font-medium">Mark Location</span>
+                  <MapPin className="h-7 w-7 text-red-500" />
+                  <span className="text-xl font-semibold text-sidebar-foreground">Mark Location</span>
                 </div>
                 <Switch
                   checked={locationEnabled}
@@ -172,37 +180,39 @@ export function AppSidebar() {
         </div>
 
         {/* Bottom Section */}
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-sidebar-border">
           {/* Logout Button */}
-          <Button
-            onClick={handleLogout}
-            variant="default"
-            className="w-full mb-4"
-            size={collapsed ? "icon" : "default"}
-          >
-            <LogOut className="h-4 w-4" />
-            {!collapsed && <span className="ml-2">Log Out</span>}
-          </Button>
+          <div className="flex justify-center mb-4">
+            <Button
+              onClick={handleLogout}
+              variant="default"
+              className="min-w-[90px] h-10 bg-sidebar-primary text-sidebar-primary-foreground hover:bg-sidebar-primary/90"
+              size={collapsed ? "icon" : "default"}
+            >
+              <LogOut className="h-4 w-4" />
+              {!collapsed && <span className="ml-2">Log Out</span>}
+            </Button>
+          </div>
 
           {/* Theme Toggle */}
           {!collapsed && (
-            <div className="flex items-center justify-start">
-              <div className="flex bg-muted rounded-lg p-1">
+            <div className="flex items-start">
+              <div className="flex bg-sidebar-background border border-sidebar-border rounded-xl p-1 w-[90px] h-9">
                 <Button
-                  variant={!isDarkMode ? "secondary" : "ghost"}
+                  variant="ghost"
                   size="sm"
                   onClick={() => setIsDarkMode(false)}
-                  className="rounded-md"
+                  className={`flex-1 h-7 rounded-lg ${!isDarkMode ? 'bg-sidebar-accent border border-sidebar-border' : ''}`}
                 >
-                  <Sun className="h-4 w-4" />
+                  <Sun className="h-4 w-4 text-black" />
                 </Button>
                 <Button
-                  variant={isDarkMode ? "secondary" : "ghost"}
+                  variant="ghost"
                   size="sm"
                   onClick={() => setIsDarkMode(true)}
-                  className="rounded-md"
+                  className={`flex-1 h-7 rounded-lg ${isDarkMode ? 'bg-sidebar-foreground border border-sidebar-border' : ''}`}
                 >
-                  <Moon className="h-4 w-4" />
+                  <Moon className="h-4 w-4 text-white" />
                 </Button>
               </div>
             </div>
